@@ -1,0 +1,217 @@
+
+// An idea for getting this to work properly - run it on a second chart instead of a minute chart.
+// E.G. 600S instead of 10 or 300S instead of 5
+
+function preMain() {
+
+    setPriceStudy(false);
+    setStudyTitle("BidAsk");
+    setShowTitleParameters(false);
+    setShowCursorLabel(true);
+    setCursorLabelName("BidAsk", 0);
+
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("UpperCutOff", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(1500);
+	}
+    aFPArray[x] = new FunctionParameter("LowerCutOff", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(-1500);
+	}
+    aFPArray[x] = new FunctionParameter("AskColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.green);
+	}
+    aFPArray[x] = new FunctionParameter("AskColorAlert", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+	}
+    aFPArray[x] = new FunctionParameter("BidColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.red);
+	}
+    aFPArray[x] = new FunctionParameter("BidColorAlert", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.fushcia);
+	}
+    aFPArray[x] = new FunctionParameter("BarThick", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(2);
+        setLowerLimit(1);
+	}
+    aFPArray[x] = new FunctionParameter("debugOn", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(false);
+	}
+
+	_init = true;
+}
+
+var _init = true;
+var aFPArray = new Array();
+
+var _bidSize = 0;
+var _askSize = 0;
+var _lastVolume = 0;
+
+var logging = false;
+var _fileName; // for debugging
+var f;
+function postMain()
+{
+    if(logging) {
+        if( f != null) {
+            f.close();
+        }
+    }
+}
+function WriteToFile(lineS) {
+    if(logging) {
+        f.writeln(lineS);
+        f.flush();
+    }
+}
+function main(UpperCutOff, LowerCutOff, AskColor, AskColorAlert, BidColor, BidColorAlert, BarThick, debugOn) {
+
+    if(_init)
+    {
+        if(debugOn == "true" || debugOn == true) {
+            logging = true;
+        } else {
+            logging = false;
+        }
+
+        setDefaultBarThickness(BarThick,0);
+        setDefaultBarFgColor(BidColor,0);
+
+        addBand(UpperCutOff, PS_SOLID, 1, Color.blue, "BidAskUpper");
+        addBand(LowerCutOff, PS_SOLID, 1, Color.blue, "BidAskLower");
+        _bidSize = 0;
+        _askSize = 0;
+        _lastVolume = 0;
+
+        _init = false;
+        if(logging) {
+            debugPrintln("Debugging switched on in BidAsk");
+            SetFileName();
+            f = new File(_fileName);
+            f.open("at");
+        }
+    }
+
+    if (getBarState() == BARSTATE_ALLBARS) {
+        return;
+    }
+
+    if (getBarState() == BARSTATE_NEWBAR) {
+        _bidSize = 0;
+        _askSize = 0;
+        _lastVolume = 0;
+
+        // This will happen when we're loading new bars.
+        if( high() != low() ) {
+            _lastVolume = volume();
+            return 0;
+        }
+        if(getCurrentBarIndex() != 0) {
+            return 0;
+        }
+    }
+
+    var timeS;
+    if(logging) {
+        var timeObj = new Date();
+        var hourT = timeObj.getHours();
+        var minuteT = timeObj.getMinutes();
+        var secondT = timeObj.getSeconds();
+        if(hourT < 10) {
+            hourT = "0" + hourT;
+        }
+        if(minuteT < 10) {
+            minuteT = "0" + minuteT;
+        }
+        if(secondT < 10) {
+            secondT = "0" + secondT;
+        }
+        timeS = hourT + ":" + minuteT + ":" + secondT;
+    }
+
+    var lastSize = volume() - _lastVolume;
+    _lastVolume = volume();
+
+    var mostRTS = getMostRecentTradeSize();
+    var diff = lastSize - mostRTS
+
+    if(getMostRecentTrade() == getMostRecentAsk()) {
+        _askSize += mostRTS;
+        _bidSize += diff;
+        if(logging) {
+            var writeString = timeS + " A " + formatPriceNumber(getMostRecentAsk()) +
+                "  " + mostRTS;
+            debugPrintln(writeString);
+            if(diff != 0) {
+                var writeString = timeS + " B " + formatPriceNumber(getMostRecentBid()) +
+                    "  " + diff;
+                debugPrintln(writeString);
+            }
+        }
+    } else {
+        _bidSize += mostRTS;
+        _askSize += diff;
+        if(logging) {
+            var writeString = timeS + " B " + formatPriceNumber(getMostRecentBid()) +
+                "  " + mostRTS;
+            debugPrintln(writeString);
+            if(diff != 0) {
+                var writeString = timeS + " A " + formatPriceNumber(getMostRecentTrade()) +
+                    "  " + diff;
+                debugPrintln(writeString);
+            }
+        }
+    }
+
+    if(logging) {
+        var writeString = hourT + ":" + minuteT + ":" + secondT + "  " +
+            getMostRecentTrade() + "  " + getMostRecentBid() + "," +
+            getMostRecentAsk() + "," + volume();
+        // WriteToFile(writeString);
+    }
+
+    var netAsk = _askSize - _bidSize;
+
+    if(netAsk > UpperCutOff) {
+        setDefaultBarFgColor(AskColorAlert,0);
+    } else if (netAsk >= 0) {
+        setDefaultBarFgColor(AskColor,0);
+    } else if (netAsk >= LowerCutOff) {
+        setDefaultBarFgColor(BidColor,0);
+    } else {
+        setDefaultBarFgColor(BidColorAlert,0);
+    }
+
+    return netAsk;
+}
+
+
+function SetFileName() {
+    var timeObj = new Date();
+    var _year  = timeObj.getYear() + 1900;
+    var _month = timeObj.getMonth() + 1;
+    var _day   = timeObj.getDate();
+
+    _month = _month + "-";
+    if(_month.length < 3) {
+        _month = "0" + _month;
+    }
+    _day = _day + "."
+    if(_day.length < 3) {
+        _day = "0" + _day;
+    }
+
+    var symName = getSymbol();
+    var symA = symName.split(" ");
+    _fileName = "BidAskLog-" + symA[0] + "-" + _year + "-" + _month + _day + "txt";
+}

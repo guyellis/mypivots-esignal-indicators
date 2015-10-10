@@ -1,0 +1,64 @@
+
+
+function preMain() {
+
+    setPriceStudy(true);
+    setStudyTitle("PitSim");
+    setShowTitleParameters(false);
+    setShowCursorLabel(false);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("SquawkContracts", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setName("Sound Every X Contracts");
+        setDefault(200);
+        setLowerLimit(1);
+	}
+    aFPArray[x] = new FunctionParameter("SoundFile", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setName("Sound File");
+        var i;
+        for(i=0; i<10; i++)
+            addOption(i);
+        setDefault(0);
+	}
+
+}
+
+var _init = true;
+var aFPArray = new Array();
+var _soundFile;
+var _lastVol = 0;
+var _cumVol = 0;
+var _numContracts = 0;
+
+function main(SquawkContracts, SoundFile) {
+
+    if(_init)
+    {
+        _soundFile = "sim" + SoundFile + ".wav";
+        _init = false;
+    }
+
+    if (getBarState() == BARSTATE_ALLBARS) {
+        _cumVol = 0;
+        return;
+    }
+
+    if (getBarState() == BARSTATE_NEWBAR) {
+        _numContracts = volume();
+    } else {
+        _numContracts = (volume() - _lastVol);
+    }
+
+    _lastVol = volume();
+
+    _cumVol += _numContracts;
+
+    while(_cumVol > SquawkContracts) {
+        _cumVol = _cumVol - SquawkContracts;
+        Alert.playSound(_soundFile);
+    }
+
+    return;
+}

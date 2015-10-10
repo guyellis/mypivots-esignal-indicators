@@ -1,0 +1,109 @@
+
+var aFPArray = new Array();
+var _init = true;
+var _open, curHi, curLo;
+var _names = new Array("Open","High","Low","Close");
+var ohlc;
+var _currentDay = 0;
+
+function preMain() {
+
+    setPriceStudy(true);
+    setShowCursorLabel(true);
+    setShowTitleParameters(false);
+
+    var x = 0;
+    var i;
+    for(i=0; i<_names.length; i++)
+    {
+        aFPArray[x] = new FunctionParameter( "Show" + _names[i], FunctionParameter.BOOLEAN);
+        with( aFPArray[x++] ) {
+            setDefault(true);
+        }
+    }
+    aFPArray[x] = new FunctionParameter( "OpenColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.green);
+    }
+    aFPArray[x] = new FunctionParameter( "HighColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.red);
+    }
+    aFPArray[x] = new FunctionParameter( "LowColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+    }
+    aFPArray[x] = new FunctionParameter( "CloseColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.teal);
+    }
+    aFPArray[x] = new FunctionParameter( "LineStyle", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+    }
+    aFPArray[x] = new FunctionParameter( "PlotType", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PLOTTYPE_LINE");
+        addOption("PLOTTYPE_DOT");
+        addOption("PLOTTYPE_SQUAREWAVE");
+        addOption("PLOTTYPE_HISTOGRAM");
+        addOption("PLOTTYPE_FLATLINES");
+        addOption("PLOTTYPE_INSTANTCOLORLINE");
+        setDefault("PLOTTYPE_FLATLINES" );
+    }
+    aFPArray[x] = new FunctionParameter( "LineThickness", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit(1);
+        setDefault(2);
+    }
+
+    _init = true;
+}
+
+
+function main(ShowOpen, ShowHigh, ShowLow, ShowClose, OpenColor, HighColor, LowColor, CloseColor, LineStyle, PlotType, LineThickness) {
+
+    if(_init)
+    {
+        setStudyTitle("Prev OHLC");
+
+        var i;
+        var counter = 0;
+        for(i=0; i<_names.length; i++) {
+            var show = eval("Show" + _names[i]);
+            if(show == true || show == "true") {
+                setCursorLabelName("Prev"+_names[i], counter);
+                setPlotType(eval(eval(PlotType)), counter);
+                setDefaultBarThickness(LineThickness, counter);
+                setDefaultBarFgColor(eval(_names[i]+"Color"), counter);
+                setDefaultBarStyle(eval(eval(LineStyle)), counter);
+                counter++;
+            }
+        }
+        curHi = high(0);
+        curLo = low(0);
+        _init = false;
+    }
+    if(_currentDay != getDay(0)) {
+        ohlc = new Array();
+        if(ShowOpen)  { ohlc.push(_open); }
+        if(ShowHigh)  { ohlc.push(curHi); }
+        if(ShowLow)   { ohlc.push(curLo); }
+        if(ShowClose) { ohlc.push(close(-1)); }
+
+        curHi = high(0);
+        curLo = low(0);
+        _open = open(0);
+        _currentDay = getDay(0);
+    }
+    
+    curHi = Math.max(curHi, high(0));
+    curLo = Math.min(curLo, low(0));
+    return ohlc;
+}
+

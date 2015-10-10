@@ -1,0 +1,394 @@
+
+var aFPArray = new Array();
+function preMain()
+{
+
+    setPriceStudy(true);
+    setShowTitleParameters(false);
+    setShowTitleParameters(false);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter( "UseSpecialFormatting", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(false);
+        setName("Use Special Formatting");
+    }
+    aFPArray[x] = new FunctionParameter( "ORType", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("Absolute");
+        addOption("Multiple");
+        setDefault("Absolute");
+    }
+    aFPArray[x] = new FunctionParameter("OuterValue", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(1);
+        setLowerLimit(1);
+    }
+    aFPArray[x] = new FunctionParameter("StartTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("09:30");
+	}
+    aFPArray[x] = new FunctionParameter("EndTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("09:31");
+	}
+    aFPArray[x] = new FunctionParameter("ShowUntil", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("23:59");
+	}
+    aFPArray[x] = new FunctionParameter("NumOuterLines", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(1);
+        setLowerLimit(1);
+    }
+    aFPArray[x] = new FunctionParameter( "colorOR", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.white);
+        setName("Color OR");
+    }
+    aFPArray[x] = new FunctionParameter( "thickOR", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Thickness OR");
+    }
+    aFPArray[x] = new FunctionParameter( "styleOR", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DOT" );
+        setName("Style OR");
+    }
+    aFPArray[x] = new FunctionParameter( "colorOuter", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.yellow);
+        setName("Color Outer");
+    }
+    aFPArray[x] = new FunctionParameter( "thickOuter", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Thickness Outer");
+    }
+    aFPArray[x] = new FunctionParameter( "styleOuter", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DOT" );
+        setName("Style Outer");
+    }
+    aFPArray[x] = new FunctionParameter( "ShowLabels", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+        setName("Show Labels");
+    }
+    aFPArray[x] = new FunctionParameter( "DecPoints", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(2);
+        setName("Decimal Points");
+    }
+
+	_init = true;
+	_waiting = true;
+}
+
+var _init = true;
+var _waiting = true;
+var _currentDay = 0;
+
+var _decPoints = 2;
+
+var startMinute = null;
+var endMinute = null;
+var _showUntil = null;
+
+// ibLabels holds the labels that are shown next to the line and in the cursor window
+// The labels are prefixed with T- if IBs pertain to Today or MT- if IBs pertain to Mon+Tue
+var ibLabels = null;
+// ibArray holds the array of values returned.
+var ibArray = null;
+
+var _useSpecialFormatting = false;
+
+var highP = null;
+var lowP = null;
+
+var _usingBars = false;
+
+function main(
+UseSpecialFormatting,
+ORType,
+OuterValue,
+StartTime,
+EndTime,
+ShowUntil,
+NumOuterLines,
+colorOR,
+thickOR,
+styleOR,
+colorOuter,
+thickOuter,
+styleOuter,
+ShowLabels,
+DecPoints
+)
+{
+
+    if(_init)
+    {
+        _decPoints = DecPoints;
+
+        var timeString = StartTime.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        startMinute = hour * 60 + minute * 1;
+
+        timeString = EndTime.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        endMinute = hour * 60 + minute * 1;
+
+        timeString = ShowUntil.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        _showUntil = hour * 60 + minute * 1;
+
+        if(startMinute >= endMinute)
+        {
+			debugPrintln("Start Time is later or equal to End Time. Change this in the parameters now!");
+        }
+
+        if(UseSpecialFormatting == "true" || UseSpecialFormatting == true) {
+            _useSpecialFormatting = true;
+        } else {
+            _useSpecialFormatting = false;
+        }
+
+        highP = lowP = null;
+
+        // Set up all the labels in an array
+        var labelPrefix = "MOR-";
+        if(ORType == "Absolute") {
+            setStudyTitle("Absolute OR");
+            labelPrefix = "AOR-";
+        } else {
+            setStudyTitle("Multiple OR");
+        }
+        var i = 0;
+        ibLabels = new Array();
+        var j;
+        for(j=NumOuterLines; j>0; j--)
+        {
+            ibLabels[i] = labelPrefix + "UOOR" + j;
+            setDefaultBarStyle(eval(styleOuter), i);
+            setDefaultBarFgColor(colorOuter, i);
+            setDefaultBarThickness(thickOuter, i);
+            i++;
+        }
+
+        ibLabels[i] = labelPrefix + "ORH";
+        setDefaultBarStyle(eval(styleOR), i);
+        setDefaultBarFgColor(colorOR, i);
+        setDefaultBarThickness(thickOR, i);
+        i++;
+
+        ibLabels[i] = labelPrefix + "ORL";
+        setDefaultBarStyle(eval(styleOR), i);
+        setDefaultBarFgColor(colorOR, i);
+        setDefaultBarThickness(thickOR, i);
+        i++;
+
+        for(j=1; j<NumOuterLines+1; j++)
+        {
+            ibLabels[i] = labelPrefix + "LOOR" + j;
+            setDefaultBarStyle(eval(styleOuter), i);
+            setDefaultBarFgColor(colorOuter, i);
+            setDefaultBarThickness(thickOuter, i);
+            i++;
+        }
+
+        ibArray = new Array();
+        for(i=0; i<ibLabels.length; i++) {
+            setCursorLabelName(ibLabels[i], i);
+            setPlotType(PLOTTYPE_FLATLINES, i);
+            ibArray[i] = null;
+        }
+
+        var datObj = new Date();
+        var nowMinute = datObj.getHours() * 60 + datObj.getMinutes();
+        if(nowMinute >= endMinute)
+        {
+            _usingBars = true;
+        } else {
+            _usingBars = false;
+        }
+
+        _init = false;
+    }
+    if(_currentDay != getDay(0))
+    {
+        var dayX = getDay(0);
+        var monthX = getMonth(0);
+        var yearX = getYear(0);
+
+        highP = lowP = null;
+        NullORArray();
+
+        _waiting = true;
+
+        // getCurrentBarIndex() will only return 0 if we are not loading historic
+        // data and just running normally. This will allow the _usingBars variable
+        // to be set to false when we cross midnight because then we are ahead
+        // of the opening range time.
+        if(getCurrentBarIndex() == 0) {
+            _usingBars = false;
+        }
+
+        _currentDay = getDay(0);
+    }
+
+    var nowMinute;
+	if(_waiting)
+    {
+        var seconds = -1; // just for debugging
+
+        if(_usingBars) {
+            nowMinute = getHour(0) * 60 + getMinute(0);
+        } else {
+            // This "new Date()" line is very expensive in processing time but will give
+            // us to the second accuracy for when the OR finishes.
+            var datObj = new Date();
+            nowMinute = datObj.getHours() * 60 + datObj.getMinutes();
+            seconds = datObj.getSeconds();
+            // While we're waiting for the data the system time might be past the endMinute
+            // If this happens then it means that we loaded this EFS after the endMinute
+            // and there is no point in using system time anymore because it will not
+            // draw any lines or work. So we switch back to using bar time here.
+        }
+        if(nowMinute >= startMinute && nowMinute < endMinute) {
+            // Collect data because we are in time period
+            if(highP == null || lowP == null) {
+                // Init highP and lowP with current bar's high and low
+                if(_usingBars) {
+                    highP = high(0);
+                    lowP = low(0);
+                } else {
+                    highP = close(0);
+                    lowP = close(0);
+                }
+            }
+
+            if(_usingBars) {
+                if(high(0) > highP) {
+                    highP = high(0);
+                }
+                if(low(0) < lowP) {
+                    lowP = low(0);
+                }
+            } else {
+                if(close(0) > highP) {
+                    highP = close(0);
+                }
+                if(close(0) < lowP) {
+                    lowP = close(0);
+                }
+            }
+        }
+
+        if(nowMinute >= endMinute) {
+            if(highP != null && lowP != null) {
+                SetORArray(highP, lowP, ORType, OuterValue, NumOuterLines);
+                AddLabels(ShowLabels);
+            }
+            _waiting = false;
+        }
+    }
+
+    nowMinute = getHour(0) * 60 + getMinute(0);
+    if(nowMinute > _showUntil) NullORArray();
+
+    return ibArray;
+}
+
+function AddLabels(ShowLabels) {
+    if (ShowLabels == "true" || ShowLabels == true)
+    {
+        var sTextFlags, nTextX;
+        var sLabelPos = "Right";
+        if (sLabelPos == "Right") {
+            sTextFlags = "Text.LEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 2;
+        } else if (sLabelPos == "RightEdge") {
+            sTextFlags = "Text.RIGHT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 2;
+        } else {
+            sTextFlags = "Text.RELATIVETOLEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 0;
+        }
+        for(i=0; i<ibLabels.length; i++) {
+            var txtName = ibLabels[i];
+            drawTextAbsolute(nTextX, ibArray[i], txtName,
+                Color.white, Color.blue, eval(sTextFlags), null, 10, ibLabels[i] + i);
+        }
+    }
+}
+
+function NullORArray() {
+    var i;
+    for(i=0; i<ibArray.length; i++) {
+        ibArray[i] = null;
+    }
+    // TODO Clear labels 
+}
+
+function SetORArray(highPP, lowPP, ORType, OuterValue, NumOuterLines) {
+    ibArray = new Array();
+    var OR = highPP - lowPP;
+    if(ORType == "Absolute")
+        OR = OuterValue;
+    else
+        OR *= OuterValue;
+
+    var i = 0;
+    var j;
+    for(j=NumOuterLines; j>0; j--)
+    {
+        ibArray[i++] = highPP + OR * j;
+    }
+
+    ibArray[i++] = highPP;
+    ibArray[i++] = lowPP;
+
+    for(j=1; j<NumOuterLines+1; j++)
+    {
+        ibArray[i++] = lowPP - OR * j;
+    }
+}
+
+var txtMsgString = "";
+function BuildString(txtAdd) {
+    txtMsgString += txtAdd + "\r\n";
+}
+function ClearString() {
+    txtMsgString = "";
+}
+
+// GetFormattedNumber()
+// This function formats the parameter to the number of decimal points that have been
+// specified in the global parameters or uses eSignals built in format...() function
+// if this has been set in the global parameters.
+function GetFormattedNumber(numToFormat) {
+    if(_useSpecialFormatting) {
+        return formatPriceNumber(numToFormat);
+    } else {
+        return numToFormat.toFixed(_decPoints);
+    }
+}

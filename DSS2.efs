@@ -1,0 +1,83 @@
+
+function preMain() 
+{
+
+   setShowTitleParameters(false);
+} 
+
+var EMA_1 = 0; 
+var EMA1_1 = 0; 
+vAA = new Array(); 
+var EMA = 0; 
+var EMA1 = 0; 
+var triggerLen = 1;
+
+// Modified the main() function by dropping the 3rd parameter. 
+function main(pds,emalen) { 
+
+ if (pds == null || emalen == null)    {        
+       Alert.addToList(getSymbol(), "Don't load DSS2.efs directly. Use DSS.efs", Color.black, Color.blue);
+   return 50;	
+   }
+ var nBarState = getBarState();	 
+   var vHigh = getValue("High",0,-pds); 
+ var vLow = getValue("Low",0,-pds); 
+ var dClose = getValue("Close"); 
+ if(vHigh == null || vLow == null || dClose == null) 
+   return; 
+    
+   if (nBarState == BARSTATE_NEWBAR) { 
+       EMA_1 = EMA; 
+       EMA1_1 = EMA1; 
+   } 
+
+   var K = 2 / (emalen + 1); 
+   var K2 = 2 / (triggerLen + 1); 
+   var aa = 0; 
+   var dss = 0; 
+ var High = 0; 
+ var Low = low(); 
+ var aHigh = 0; 
+ var aLow = 0; 
+  
+ for (i = 0; i < pds; i++) { 
+       High = Math.max(High,vHigh[i]); 
+       Low =  Math.min(Low,vLow[i]); 
+ } 
+   if((High - Low) != 0) { 
+     EMA = K * ( (dClose - Low) / (High - Low) ) + (1 - K) * EMA_1; 
+   } else { 
+     EMA = EMA_1; 
+   } 
+
+   aa = EMA * 100; 
+   if (nBarState == BARSTATE_NEWBAR) { 
+       for(i = pds - 1; i > 0; i--) { 
+           vAA[i] = vAA[i - 1]; 
+       } 
+   } 
+   vAA[0] = aa; 
+
+   for (i = 0; i < pds; i++) { 
+     if(i == 0) { 
+       aLow = vAA[0]; 
+       } 
+       if (aHigh < vAA[i]) { 
+         aHigh = vAA[i]; 
+       } 
+       if (aLow > vAA[i]) { 
+         aLow = vAA[i]; 
+       } 
+ } 
+ if (aHigh - aLow != 0) { 
+   EMA1 = K * ((aa - aLow) / (aHigh - aLow) ) + (1 - K) * EMA1_1; 
+ } else { 
+   EMA1 = EMA1_1; 
+   } 
+   var dss = EMA1 * 100; 
+ 
+   // Only interested in the Stochastic reading so we don't 
+   // return EMA2 which has been removed from the function
+   // to increase speed. 
+   return dss; 
+} 

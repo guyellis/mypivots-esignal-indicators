@@ -1,0 +1,163 @@
+
+var aFPArray = new Array();
+function preMain()
+{
+
+    setPriceStudy(true);
+    setStudyTitle("RF Tool");
+    setShowTitleParameters(false);
+    setShowCursorLabel(false);
+    setComputeOnClose();
+    setShowTitleParameters(false);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("HourT", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Start Hour");
+        setDefault(10);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("MinuteT", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Start Minute");
+        setDefault(30);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("BracketMinutes", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Minutes per bracket");
+        setDefault(30);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter( "popup", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setDefault(true);
+        setName("Popup Window");
+    }
+    x++;
+    aFPArray[x] = new FunctionParameter( "sound", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setDefault(true);
+        setName("Sound Alarm");
+    }
+    x++;
+    aFPArray[x] = new FunctionParameter( "soundFile", FunctionParameter.STRING);
+    with( aFPArray[x] ) {
+        setDefault("rftool.wav");
+        setName("Sound File");
+    }
+    x++;
+
+	_init = true;
+}
+
+var _init = true;
+var day = 0;
+var rotFactor = 0;
+var triggerMinute;
+
+function main(HourT, MinuteT, BracketMinutes, popup, sound, soundFile)
+{
+
+    if (getInterval() == "D")
+    {
+        return;
+    }
+    if (getBarState() == BARSTATE_ALLBARS) {
+
+    //the bars are being loaded by the script. This happens when a script is first loaded
+        return;
+    }
+
+    if(_init)
+    {
+        _init = false;
+        triggerMinute = HourT * 60 + MinuteT;
+        rotFactor = 0;
+    }
+    if(day != getDay(0))
+    {
+        day = getDay(0);
+        rotFactor = 0;
+        triggerMinute = HourT * 60 + MinuteT;
+    }
+
+    var hour = getHour(0);
+    var minute = getMinute(0);
+    var nowMinute = hour * 60 + minute + 1; // Work out why we need the + 1 here. I think that the minute reporting is delayed to the end of the bar
+
+    if(nowMinute >= triggerMinute)
+    {
+        triggerMinute += BracketMinutes;
+        // Perhaps in the future we can modify this to work on multiple
+        // symbols from 1 EFS
+        var sym = getSymbol();
+
+        var high1 = GetHighFromRange(BracketMinutes, BracketMinutes);
+        var low1 = GetLowFromRange(BracketMinutes, BracketMinutes);
+
+        var high2 = GetHighFromRange(1, BracketMinutes);
+        var low2 = GetLowFromRange(1, BracketMinutes);
+
+        if(high2 > high1)
+        {
+            rotFactor++;
+        }
+        if(high2 < high1)
+        {
+            rotFactor--;
+        }
+        if(low2 > low1)
+        {
+            rotFactor++;
+        }
+        if(low2 < low1)
+        {
+            rotFactor--;
+        }
+        if(popup == "true" || popup == true)
+        {
+            var BackColor = (rotFactor < 0) ? Color.red : Color.lime;
+            Alert.addToList(getSymbol(), "Rotation Factor = " + rotFactor, Color.black, BackColor);
+        }
+        if(sound == "true" || sound == true)
+        {
+            Alert.playSound(soundFile);
+        }
+
+    }
+}
+
+function GetHighFromRange(start, len)
+{
+    var retVal;
+    var highArray = high(-start, -len);
+
+    if(highArray.length > 0)
+        retVal = highArray[0];
+    else
+        return null;
+
+    for(i=1; i<highArray.length; i++)
+    {
+        retVal = Math.max(highArray[i], retVal);
+    }
+    return retVal;
+}
+
+function GetLowFromRange(start, len)
+{
+    var retVal;
+    var highArray = low(-start, -len);
+
+    if(highArray.length > 0)
+        retVal = highArray[0];
+    else
+        return null;
+
+    for(i=1; i<highArray.length; i++)
+    {
+        retVal = Math.min(highArray[i], retVal);
+    }
+    return retVal;
+}

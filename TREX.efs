@@ -1,0 +1,164 @@
+
+var aFPArray = new Array();
+function preMain()
+{
+
+    setPriceStudy(true); 
+    setStudyTitle("TREX");
+    setShowTitleParameters(false);
+    /* Set the label that will appear in the cursor window */
+    setCursorLabelName("TREX");
+    
+    var x=0;
+    aFPArray[x] = new FunctionParameter("popAlert", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setName("Popup Alert");
+        setDefault(true);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("makeSound", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setName("Sound Alert");
+        setDefault(true);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("multiplier", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Multiplier");
+        setDefault(10);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("offset", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Offset");
+        setDefault(0);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("buy1Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 1 Buy Color");
+        setDefault(Color.green);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("buy2Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 2 Buy Color");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("buy3Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 3 Buy Color");
+        setDefault(Color.white);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("sell1Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 1 Sell Color");
+        setDefault(Color.fushcia);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("sell2Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 2 Sell Color");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("sell3Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 3 Sell Color");
+        setDefault(Color.white);
+	}
+	
+	_init = true;
+} 
+
+var _init = true;
+var vHigh; 
+var vLow; 
+var BarCntr = 0; 
+var fromBar = 0.3;
+
+var vCREX = 0;
+var alertSound = "laser.wav";
+var disabled = true;
+var firstEntry = true;
+
+var outsideHours = true;
+
+function main(popAlert, makeSound, multiplier, offset, buy1Color, buy2Color, buy3Color, sell1Color, sell2Color, sell3Color)
+{
+
+    if (getInterval() == "D")
+    {
+        return;
+    }
+
+    if(_init)
+    {
+        _init = false;
+    }
+	if(getBarState() == BARSTATE_NEWBAR) 
+    {
+        BarCntr += 1;
+        uniqueID = "BS" + BarCntr;
+        
+        var startHour = 9 + offset;
+        var endHour = 16 + offset;
+        var hour = getHour(0);
+        var minute = getMinute(0);
+        if( (hour < startHour) || (hour==startHour && minute < 45) || (hour >= endHour) )
+        {
+            outsideHours = true;
+        }
+        else
+        {
+            outsideHours = false;
+        }
+        if(!outsideHours)
+        {
+            if(vCREX <= 30 && (popAlert == "true" || popAlert == true))
+                Alert.addToList(getSymbol(), "TREX Buy Signal", Color.black, Color.lime);
+            
+            if(vCREX <= 30 && (makeSound == "true" || makeSound == true))
+                Alert.playSound(alertSound);
+            
+            if(vCREX >= 70 && (popAlert == "true" || popAlert == true))
+                Alert.addToList(getSymbol(), "TREX Sell Signal", Color.black, Color.red);
+            
+            if(vCREX >= 70 && (makeSound == "true" || makeSound == true))
+                Alert.playSound(alertSound);
+        }
+    }
+    
+    vCREX = callFunction("DeltaT1.efs", "FREX", 14, multiplier);
+    
+    if(vCREX == null)
+    {
+        debugPrintln("return value from getTSig() is null");
+        return; 
+    }
+
+    var barSet = 0;
+    if(!outsideHours)
+    {
+        removeShape(uniqueID);
+        var bottomPos = low(barSet) - fromBar;
+        var topPos = high(barSet) + fromBar;
+
+        if(vCREX >= 70) {
+            drawShapeRelative(barSet, topPos, Shape.DOWNARROW, null, sell3Color, Shape.ONTOP, uniqueID);
+        } else if(vCREX <= 30) {
+            drawShapeRelative(barSet, bottomPos, Shape.UPARROW, null, buy3Color, Shape.ONTOP, uniqueID);
+        } else if(vCREX >= 65) {
+            drawShapeRelative(barSet, topPos, Shape.DOWNARROW, null, sell2Color, Shape.ONTOP, uniqueID); 
+        } else if(vCREX <= 35) {
+            drawShapeRelative(barSet, bottomPos, Shape.UPARROW, null, buy2Color, Shape.ONTOP, uniqueID); 
+        } else if(vCREX >= 60) {
+            drawShapeRelative(barSet, topPos, Shape.DOWNARROW, null, sell1Color, Shape.ONTOP, uniqueID); 
+        } else if(vCREX <= 40) {
+            drawShapeRelative(barSet, bottomPos, Shape.UPARROW, null, buy1Color, Shape.ONTOP, uniqueID); 
+        }
+    }
+}
+

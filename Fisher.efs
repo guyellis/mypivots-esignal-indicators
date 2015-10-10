@@ -1,0 +1,71 @@
+
+function preMain()
+{
+
+    setShowTitleParameters(false);
+
+    setStudyTitle("Fish");
+    setCursorLabelName("Fish", 0);
+    setCursorLabelName("Fish", 1);
+    setDefaultBarFgColor(Color.blue, 0);
+    setDefaultBarFgColor(Color.blue, 1);
+    setDefaultBarThickness(2,0);
+    setDefaultBarThickness(2,1);
+    addBand(0, PS_SOLID, 1, Color.black);
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+    setPlotType(PLOTTYPE_LINE,1);
+}
+
+var prevValue = 0;
+var prevFish = 0;
+var Fish = 0;
+var Value1 = 0;
+
+function main(Len) {
+
+	if (Len == null) 
+		Len = 10;
+	
+	if(getBarState() == BARSTATE_NEWBAR) 
+    {
+    	prevFish = Fish;
+        prevValue = Value1;
+	}
+	
+	var Price = (high() + low()) / 2;
+	var i;
+	
+	var MaxH = high();
+	var MinL = low();
+	for(i = 1; i < Len; i++)
+	{
+		MaxH = Math.max(MaxH, high(-i));
+		MinL = Math.min(MinL, low(-i));
+	}
+	
+	if(MaxH == MinL)
+        Value1 = prevValue;
+	else
+        Value1 = .33 * 2 * ((Price - MinL) / (MaxH - MinL) - .5) + .67 * prevValue;
+	
+	if(Value1 > .999)
+		Value1 = .999;
+	if(Value1 < -.999)
+		Value1 = -.999;
+	
+	Fish = .5 * Math.log((1 + Value1) / (1 - Value1)) + .5 * prevFish;
+	
+    if(prevFish > Fish)
+    {
+        setDefaultBarFgColor(Color.red, 0);
+        setDefaultBarFgColor(Color.red, 1);
+    }
+    else
+    {
+        setDefaultBarFgColor(Color.lime, 0);
+        setDefaultBarFgColor(Color.lime, 1);
+    }
+
+	return new Array(Fish,Fish);
+}
+

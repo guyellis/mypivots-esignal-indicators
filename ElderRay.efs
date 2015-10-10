@@ -1,0 +1,110 @@
+
+function preMain() {
+
+    var aFPArray = new Array();
+    setShowTitleParameters(false);
+
+    setPriceStudy(false);
+    setStudyTitle("ElderRay");
+    setCursorLabelName("BullPower", 0);
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+    setShowCursorLabel(true);
+
+	var x=0;
+	aFPArray[x] = new FunctionParameter( "MALen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+        setName("MA length");
+		setLowerLimit(1);
+		setDefault(13);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter( "MAType", FunctionParameter.STRING);
+	with( aFPArray[x] ) {
+        setName("MA Type");
+		addOption("EMA");
+		addOption("WMA");
+		addOption("SMA");
+		setDefault("EMA");
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("Source", FunctionParameter.STRING);
+	with( aFPArray[x] ) {
+        setName("Source");
+        addOption("Close");
+        addOption("High");
+        addOption("Low");
+        addOption("Open");
+        addOption("HL/2");
+        addOption("HLC/3");
+        addOption("OHLC/4");
+        setDefault("Close");
+    }
+	x++;
+    aFPArray[x] = new FunctionParameter("LineThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Line Thickness");
+        setDefault(1);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("LineColorPos", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Line Color Positive");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("LineColorNeg", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Line Color Negative");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("BullPower", FunctionParameter.BOOLEAN);
+	with( aFPArray[x] ) {
+        setName("Bull Power");
+        setDefault(true);
+	}
+	x++;
+
+    _init = true;
+}
+
+var _init = true;
+var vMA;
+
+function main(MALen, MAType, Source, LineThick, LineColorPos, LineColorNeg, BullPower) {
+
+    if(BullPower == "false") BullPower = false;
+    if(BullPower == "true") BullPower = true;
+    if(_init)
+    {
+        _init = false;
+        if(MAType == "EMA") {
+            vMA = new MAStudy(MALen, 0, Source, MAStudy.EXPONENTIAL);
+        } else if(MAType == "SMA") {
+            vMA = new MAStudy(MALen, 0, Source, MAStudy.SIMPLE);
+        } else { // WMA
+            vMA = new MAStudy(MALen, 0, Source, MAStudy.WEIGHTED);
+        }
+        if(BullPower) {
+            setCursorLabelName("Bull Power", 0);
+            setStudyTitle("Elder-Ray Bull Power");
+        }
+        else {
+            setCursorLabelName("Bear Power", 0);
+            setStudyTitle("Elder-Ray Bear Power");
+        }
+        setDefaultBarThickness(LineThick, 0);
+    }
+
+    var retVal;
+    if(BullPower) {
+        retVal = high() - vMA.getValue(MAStudy.MA, 0);
+    }
+    else {
+        retVal = low() - vMA.getValue(MAStudy.MA, 0);
+    }
+
+    setBarFgColor((retVal >= 0) ? LineColorPos : LineColorNeg);
+
+    return retVal;
+}

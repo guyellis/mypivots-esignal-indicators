@@ -1,0 +1,260 @@
+var aFPArray = new Array();
+var _showLabels = true;
+var _showValues = true;
+var _labelPos = "Left";
+
+function preMain() {
+
+    setPriceStudy(true);
+    setStudyTitle("FibTool");
+    setShowCursorLabel(false);
+    setShowTitleParameters(false);
+
+    var x = 0;
+
+    // Parameters about the labels
+    aFPArray[x] = new FunctionParameter( "Labels", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+        setName("Show Labels");
+    }
+
+    aFPArray[x] = new FunctionParameter( "Values", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+        setName("Show Values");
+    }
+
+    aFPArray[x] = new FunctionParameter( "sLabelPos", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("Left");
+        addOption("Right");
+        addOption("RightEdge");
+        setDefault("Left");
+        setName("Label Position");
+    }
+
+
+    // Parameters about the start and end times
+    aFPArray[x] = new FunctionParameter( "StartHour", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(9);
+    }
+
+    aFPArray[x] = new FunctionParameter( "StartMinute", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(30);
+    }
+
+    aFPArray[x] = new FunctionParameter( "EndHour", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(16);
+    }
+
+    aFPArray[x] = new FunctionParameter( "EndMinute", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(15);
+    }
+
+
+    var i;
+    for(i=0; i<lineLabel.length; i++)
+    {
+        aFPArray[x] = new FunctionParameter( "Line" + (i+1) + "On", FunctionParameter.BOOLEAN);
+        with( aFPArray[x++] ) {
+            setDefault(lineOn[i]);
+        }
+
+        aFPArray[x] = new FunctionParameter( "Line" + (i+1) + "Label", FunctionParameter.STRING);
+        with( aFPArray[x++] ) {
+            setDefault(lineLabel[i]);
+        }
+
+        aFPArray[x] = new FunctionParameter( "Line" + (i+1) + "Pcnt", FunctionParameter.NUMBER);
+        with( aFPArray[x++] ) {
+            setDefault(lineFibNum[i]);
+        }
+
+
+        aFPArray[x] = new FunctionParameter( "Line" + (i+1) + "Color", FunctionParameter.COLOR);
+        with( aFPArray[x++] ) {
+            setDefault(lineColor[i]);
+        }
+
+        aFPArray[x] = new FunctionParameter( "Line" + (i+1) + "Thick", FunctionParameter.NUMBER);
+        with( aFPArray[x++] ) {
+            setDefault(lineThick[i]);
+        }
+
+        aFPArray[x] = new FunctionParameter( "Line" + (i+1) + "Style", FunctionParameter.STRING);
+        with( aFPArray[x++] ) {
+            addOption("PS_SOLID");
+            addOption("PS_DOT");
+            addOption("PS_DASH");
+            addOption("PS_DASHDOT");
+            addOption("PS_DASHDOTDOT");
+            setDefault(lineStyle[i]);
+        }
+
+    }
+
+    _init = true;
+}
+
+var _init = true;
+
+function main(
+Labels,
+Values,
+sLabelPos,
+StartHour,
+StartMinute,
+EndHour,
+EndMinute,
+
+Line1On,
+Line1Label,
+Line1Pcnt,
+Line1Color,
+Line1Thick,
+Line1Style,
+
+Line2On,
+Line2Label,
+Line2Pcnt,
+Line2Color,
+Line2Thick,
+Line2Style,
+
+Line3On,
+Line3Label,
+Line3Pcnt,
+Line3Color,
+Line3Thick,
+Line3Style,
+
+Line4On,
+Line4Label,
+Line4Pcnt,
+Line4Color,
+Line4Thick,
+Line4Style,
+
+Line5On,
+Line5Label,
+Line5Pcnt,
+Line5Color,
+Line5Thick,
+Line5Style
+) {
+
+    if ( getBarState() == BARSTATE_ALLBARS ) {
+        Redraw();
+        //return null;
+    }
+
+    if(_init)
+    {
+        startMinute = StartHour * 60 + StartMinute;
+        endMinute = EndHour * 60 + EndMinute;
+        _showLabels = Labels;
+        _showValues = Values;
+        _labelPos   = sLabelPos;
+
+        // TODO: Put in loop to make sure that all the labels are unique and pop an error if they
+        //       are not. Only need to pop the error if the Labels flag is set to true (I think)
+        //       This is because the Labels are used as unique identifiers when writing out the labels
+
+        var i;
+        for(i=0; i<5; i++) {
+            lineOn[i] = eval("Line" + (i+1) + "On");
+            lineLabel[i] = eval("Line" + (i+1) + "Label");
+            lineFibNum[i] = eval("Line" + (i+1) + "Pcnt");
+            lineColor[i] = eval("Line" + (i+1) + "Color");
+            lineThick[i] = eval("Line" + (i+1) + "Thick");
+            lineStyle[i] = eval("Line" + (i+1) + "Style");
+        }
+
+        _init = false;
+    }
+
+    if(_currentDay != getDay(0)) {
+        _high = _low = null;
+        _currentDay = getDay(0);
+    }
+
+    var timeNow = getHour(0) * 60 + getMinute(0);
+    if(timeNow >= startMinute && timeNow < endMinute) {
+        if(_high == null || _low == null) {
+            _high = high(0);
+            _low = low(0);
+            Redraw();
+        }
+
+        if(_high < high(0)) {
+            _high = high(0);
+            Redraw();
+        }
+        if(_low > low(0)) {
+            _low = low(0);
+            Redraw();
+        }
+    } else {
+        _high = _low = null;
+    }
+}
+
+var _currentDay = 0;
+
+var startMinute = null;
+var endMinute = null;
+
+var lineOn     = new Array(true, true, true, true, true);
+var lineLabel  = new Array("High", "Low", "38.2%", "50%", "61.8%");
+var lineFibNum = new Array(100,    0,      38.2,    50,    61.8  );
+var lineColor  = new Array(Color.red, Color.lime, Color.purple, Color.aqua, Color.yellow);
+var lineThick  = new Array(2, 2, 2, 2, 2);
+var lineStyle  = new Array("PS_DASH", "PS_DASH", "PS_DASH", "PS_DASH", "PS_DASH");
+var lineValue  = new Array(0, 0, 0, 0, 0);
+
+var _high = null;
+var _low = null;
+// Called when the high or low is breached. This recalculates and redraws all the
+// lines.
+function Redraw() {
+    var range = _high - _low;
+
+    // recalculate the values
+    var i;
+    for(i=0; i<lineValue.length; i++) {
+        lineValue[i] = lineFibNum[i] / 100 * range + _low;
+        if(lineOn[i] == "true" || lineOn[i] == true) {
+            addBand(lineValue[i], eval(lineStyle[i]), lineThick[i], lineColor[i], lineLabel[i]);
+            AddLabel(lineLabel[i], lineValue[i]);
+        }
+    }
+}
+
+function AddLabel(labelName, labelValue) {
+    if(_showLabels == "true" || _showLabels == true) {
+        var sTextFlags, nTextX;
+
+        if (_labelPos == "Right") {
+            sTextFlags = "Text.LEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 2;
+        } else if (_labelPos == "RightEdge") {
+            sTextFlags = "Text.RIGHT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 2;
+        } else {
+            sTextFlags = "Text.RELATIVETOLEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 0;
+        }
+
+        var txtName = " " + labelName;
+        if(_showValues == "true" || _showValues == true) {
+            txtName += " [" + formatPriceNumber(labelValue) + "]";
+        }
+
+        drawTextAbsolute(nTextX, labelValue, txtName, Color.white, Color.blue, eval(sTextFlags), null, 10, labelName);
+    }
+}

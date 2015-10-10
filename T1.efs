@@ -1,0 +1,134 @@
+/*
+
+Purpose: To use the 144 SMA as a base horizontal line at 0 and then to show 
+how other SMAs are related to it.
+
+*/
+
+var aFPArray = new Array();
+
+function preMain() {
+    
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+
+    setStudyTitle("T1");
+    setShowTitleParameters(false);
+
+    setCursorLabelName("T1",0);
+    
+    addBand(0, PS_SOLID, 2, Color.cyan, 0);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("level1", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Weak Buy/Sell");
+        setDefault(8);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("level2", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Medium Buy/Sell");
+        setDefault(10);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("level3", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Strong Buy/Sell");
+        setDefault(12);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("baseColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Base Color");
+        setDefault(Color.blue);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("weakSell", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Weak Sell");
+        setDefault(Color.cyan);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("mediumSell", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Medium Sell");
+        setDefault(Color.yellow);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("strongSell", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Strong Sell");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("weakBuy", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Weak Buy");
+        setDefault(Color.cyan);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("mediumBuy", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Medium Buy");
+        setDefault(Color.green);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("strongBuy", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Strong Buy");
+        setDefault(Color.lime);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("barThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Bar Thickness");
+        setDefault(3);
+	}
+	x++;
+	
+	_init = true;
+}
+
+var _init = true;
+
+function main(level1, level2, level3, baseColor, weakSell, mediumSell, strongSell, weakBuy, mediumBuy, strongBuy, barThick) {
+
+    if(_init) {
+        setDefaultBarThickness(barThick, 0);
+        _init = false;
+    }
+    var vSMA1 = callFunction("DeltaT1.efs", "FT1");
+    
+    if(vSMA1 < -level3)
+    {
+        setDefaultBarFgColor(strongBuy,0);
+    }
+    else if(vSMA1 < -level2)
+    {
+        setDefaultBarFgColor(mediumBuy,0);
+    }
+    else if(vSMA1 < -level1)
+    {
+        setDefaultBarFgColor(weakBuy,0);
+    }
+    else if(vSMA1 > level3)
+    {
+        setDefaultBarFgColor(strongSell,0);
+    }
+    else if(vSMA1 > level2)
+    {
+        setDefaultBarFgColor(mediumSell,0);
+    }
+    else if(vSMA1 > level1)
+    {
+        setDefaultBarFgColor(weakSell,0);
+    }
+    else
+    {
+        setDefaultBarFgColor(baseColor,0);
+    }
+
+    return vSMA1;
+}
+
+

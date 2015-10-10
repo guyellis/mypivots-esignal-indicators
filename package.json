@@ -1,0 +1,29 @@
+{
+  "name": "mypivots-esignal-indicators",
+  "version": "0.0.1",
+  "description": "MyPivots eSignal Indicators",
+  "main": "n/a",
+  "scripts": {
+    "test": "n/a",
+    "lint": "eslint --ext .efs ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guyellis/mypivots-esignal-indicators.git"
+  },
+  "keywords": [
+    "esignal",
+    "trading",
+    "indicators"
+  ],
+  "author": "Guy Ellis <wildfiction@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/guyellis/mypivots-esignal-indicators/issues"
+  },
+  "homepage": "https://github.com/guyellis/mypivots-esignal-indicators",
+  "devDependencies": {
+    "eslint": "^1.6.0",
+    "eslint-config-guyellis": "0.0.4"
+  }
+}

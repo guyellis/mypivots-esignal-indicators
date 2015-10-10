@@ -1,0 +1,2204 @@
+function preMain() {
+
+  setPriceStudy(true);
+  setShowCursorLabel(true);
+  setShowTitleParameters(false);
+
+  setCursorLabelName("VAH", 0);
+  setCursorLabelName("POC", 1);
+  setCursorLabelName("VAL", 2);
+  setCursorLabelName("DVAH", 3);
+  setCursorLabelName("DPOC", 4);
+  setCursorLabelName("DVAL", 5);
+
+  SetTickSize(); // sets the values of _tickSize and _decPoints from web file
+  var x = 0;
+  aFPArray[x] = new FunctionParameter("TickSize", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(_tickSize);
+    setName("Tick Size");
+  }
+  aFPArray[x] = new FunctionParameter("DecPoints", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(_decPoints);
+    setName("Decimal Points");
+  }
+  aFPArray[x] = new FunctionParameter("UseSpecialFormatting", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+    setName("Use Special Formatting");
+  }
+  aFPArray[x] = new FunctionParameter("StartTime", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    setDefault("09:30");
+  }
+  aFPArray[x] = new FunctionParameter("EndTime", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    setDefault("16:15");
+  }
+  aFPArray[x] = new FunctionParameter("ShowDVAFrom", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    setDefault("10:15");
+  }
+  aFPArray[x] = new FunctionParameter("FirstBracketLength", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(30);
+    setName("First Bracket Length");
+  }
+  aFPArray[x] = new FunctionParameter("FirstBracketLetter", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    var i;
+    for (i = 0; i < MPLetters.length; i++) {
+      addOption(MPLetters[i]);
+    }
+    setDefault("D");
+    setName("First Bracket Letter");
+  }
+  aFPArray[x] = new FunctionParameter("BracketLength", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(30);
+    setName("Bracket Length");
+  }
+  aFPArray[x] = new FunctionParameter("ComputeOnClose", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+    setName("Compute On Close");
+  }
+
+  //++++++++++++++++++++++++++++++++++++++++++++
+  aFPArray[x] = new FunctionParameter("ShowDVAH", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show DVAH");
+  }
+  aFPArray[x] = new FunctionParameter("ShowDPOC", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show DPOC");
+  }
+  aFPArray[x] = new FunctionParameter("ShowDVAL", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show DVAL");
+  }
+  aFPArray[x] = new FunctionParameter("ShowVAH", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+    setName("Show VAH");
+  }
+  aFPArray[x] = new FunctionParameter("ShowPOC", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+    setName("Show POC");
+  }
+  aFPArray[x] = new FunctionParameter("ShowVAL", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+    setName("Show VAL");
+  }
+
+  //++++++++++++++++++++++++++++++++++++++++++++
+  aFPArray[x] = new FunctionParameter("DVAHCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.fushcia);
+    setName("DVAH Color");
+  }
+  aFPArray[x] = new FunctionParameter("DPOCCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.cyan);
+    setName("DPOC Color");
+  }
+  aFPArray[x] = new FunctionParameter("DVALCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.lime);
+    setName("DVAL Color");
+  }
+  aFPArray[x] = new FunctionParameter("VAHCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.red);
+    setName("VAH Color");
+  }
+  aFPArray[x] = new FunctionParameter("POCCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.blue);
+    setName("POC Color");
+  }
+  aFPArray[x] = new FunctionParameter("VALCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.green);
+    setName("VAL Color");
+  }
+
+  //++++++++++++++++++++++++++++++++++++++++++++
+  aFPArray[x] = new FunctionParameter("DVAHThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(2);
+    setName("DVAH Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("DPOCThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(2);
+    setName("DPOC Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("DVALThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(2);
+    setName("DVAL Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("VAHThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(2);
+    setName("VAH Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("POCThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(2);
+    setName("POC Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("VALThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(2);
+    setName("VAL Thickness");
+  }
+
+  //++++++++++++++++++++++++++++++++++++++++++++
+  aFPArray[x] = new FunctionParameter("DVAHStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DASH");
+    setName("DVAH Style");
+  }
+  aFPArray[x] = new FunctionParameter("DPOCStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DASH");
+    setName("DPOC Style");
+  }
+  aFPArray[x] = new FunctionParameter("DVALStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DASH");
+    setName("DVAL Style");
+  }
+  aFPArray[x] = new FunctionParameter("VAHStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DASH");
+    setName("VAH Style");
+  }
+  aFPArray[x] = new FunctionParameter("POCStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DASH");
+    setName("POC Style");
+  }
+  aFPArray[x] = new FunctionParameter("VALStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DASH");
+    setName("VAL Style");
+  }
+
+  //++++++++++++++++++++++++++++++++++++++++++++
+  aFPArray[x] = new FunctionParameter("DVAHPlotType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PLOTTYPE_LINE");
+    addOption("PLOTTYPE_DOT");
+    addOption("PLOTTYPE_SQUAREWAVE");
+    addOption("PLOTTYPE_HISTOGRAM");
+    addOption("PLOTTYPE_FLATLINES");
+    addOption("PLOTTYPE_INSTANTCOLORLINE");
+    setDefault("PLOTTYPE_FLATLINES");
+    setName("DVAH Plot Type");
+  }
+  aFPArray[x] = new FunctionParameter("DPOCPlotType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PLOTTYPE_LINE");
+    addOption("PLOTTYPE_DOT");
+    addOption("PLOTTYPE_SQUAREWAVE");
+    addOption("PLOTTYPE_HISTOGRAM");
+    addOption("PLOTTYPE_FLATLINES");
+    addOption("PLOTTYPE_INSTANTCOLORLINE");
+    setDefault("PLOTTYPE_FLATLINES");
+    setName("DPOC Plot Type");
+  }
+  aFPArray[x] = new FunctionParameter("DVALPlotType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PLOTTYPE_LINE");
+    addOption("PLOTTYPE_DOT");
+    addOption("PLOTTYPE_SQUAREWAVE");
+    addOption("PLOTTYPE_HISTOGRAM");
+    addOption("PLOTTYPE_FLATLINES");
+    addOption("PLOTTYPE_INSTANTCOLORLINE");
+    setDefault("PLOTTYPE_FLATLINES");
+    setName("DVAL Plot Type");
+  }
+  aFPArray[x] = new FunctionParameter("VAHPlotType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PLOTTYPE_LINE");
+    addOption("PLOTTYPE_DOT");
+    addOption("PLOTTYPE_SQUAREWAVE");
+    addOption("PLOTTYPE_HISTOGRAM");
+    addOption("PLOTTYPE_FLATLINES");
+    addOption("PLOTTYPE_INSTANTCOLORLINE");
+    setDefault("PLOTTYPE_FLATLINES");
+    setName("VAH Plot Type");
+  }
+  aFPArray[x] = new FunctionParameter("POCPlotType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PLOTTYPE_LINE");
+    addOption("PLOTTYPE_DOT");
+    addOption("PLOTTYPE_SQUAREWAVE");
+    addOption("PLOTTYPE_HISTOGRAM");
+    addOption("PLOTTYPE_FLATLINES");
+    addOption("PLOTTYPE_INSTANTCOLORLINE");
+    setDefault("PLOTTYPE_FLATLINES");
+    setName("POC Plot Type");
+  }
+  aFPArray[x] = new FunctionParameter("VALPlotType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PLOTTYPE_LINE");
+    addOption("PLOTTYPE_DOT");
+    addOption("PLOTTYPE_SQUAREWAVE");
+    addOption("PLOTTYPE_HISTOGRAM");
+    addOption("PLOTTYPE_FLATLINES");
+    addOption("PLOTTYPE_INSTANTCOLORLINE");
+    setDefault("PLOTTYPE_FLATLINES");
+    setName("VAL Plot Type");
+  }
+
+  // Parameters for Singles Features
+  aFPArray[x] = new FunctionParameter("ShowUS", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show Unconfirmed Singles");
+  }
+  aFPArray[x] = new FunctionParameter("ShowCS", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show Confirmed Singles");
+  }
+  aFPArray[x] = new FunctionParameter("ShowFS", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show Filled Singles");
+  }
+
+  aFPArray[x] = new FunctionParameter("USCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.yellow);
+    setName("Unconfirmed Single Color");
+  }
+  aFPArray[x] = new FunctionParameter("CSCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.white);
+    setName("Confirmed Single Color");
+  }
+  aFPArray[x] = new FunctionParameter("FSCol", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.red);
+    setName("Filled Single Color");
+  }
+
+  aFPArray[x] = new FunctionParameter("USThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(4);
+    setName("Unconfirmed Single Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("CSThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(4);
+    setName("Confirmed Single Thickness");
+  }
+  aFPArray[x] = new FunctionParameter("FSThick", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setLowerLimit(0);
+    setUpperLimit(20);
+    setDefault(4);
+    setName("Filled Single Thickness");
+  }
+
+  //++++++++++++++++++++++++++++++++++++++++++++
+  aFPArray[x] = new FunctionParameter("USStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DOT");
+    setName("Unconfirmed Singles Style");
+  }
+  aFPArray[x] = new FunctionParameter("CSStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DOT");
+    setName("Confirmed Singles Style");
+  }
+  aFPArray[x] = new FunctionParameter("FSStyle", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("PS_SOLID");
+    addOption("PS_DOT");
+    addOption("PS_DASH");
+    addOption("PS_DASHDOT");
+    addOption("PS_DASHDOTDOT");
+    setDefault("PS_DOT");
+    setName("Filled Singles Style");
+  }
+
+  aFPArray[x] = new FunctionParameter("ShowSLabels", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show Singles Labels");
+  }
+
+  aFPArray[x] = new FunctionParameter("PopupSCreated", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Alert when Single created");
+  }
+  aFPArray[x] = new FunctionParameter("PopupSFilled", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Alert when Single filled");
+  }
+
+  aFPArray[x] = new FunctionParameter("ShowGraphicButton", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show Graphic Button");
+  }
+  aFPArray[x] = new FunctionParameter("ButtonBottom", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(35);
+    setName("Button Bottom");
+  }
+  aFPArray[x] = new FunctionParameter("ButtonLeft", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(1);
+    setName("Button Left");
+  }
+
+  // Rotation Factors
+  aFPArray[x] = new FunctionParameter("PopupRFAlert", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("RF Popup Alert");
+  }
+  aFPArray[x] = new FunctionParameter("SoundRFAlert", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+    setName("RF Sound Alert");
+  }
+  aFPArray[x] = new FunctionParameter("Basis", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("Time");
+    addOption("Volume");
+    setDefault("Time");
+  }
+  aFPArray[x] = new FunctionParameter("BracketVolume", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(60000);
+    // 55000 was calculated as the average number of contracts per half hour bracket
+    // in the ES for the last few months of 2005 and few days of 2006. This was calculated
+    // using the total volume traded during NYSE market hours. Ignored the 16:00 to
+    // 16:15 time period.
+    // I changed this to 60000 because that divides into exactly 1,000 contracts per minute
+  }
+
+  aFPArray[x] = new FunctionParameter("GraphicOffset", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(1); // 1 bar to the right of the rightmost bar
+  }
+  aFPArray[x] = new FunctionParameter("ShowGraphic", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+  }
+  aFPArray[x] = new FunctionParameter("FontType", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    addOption("Courier");
+    addOption("Courier New");
+    addOption("Arial");
+    addOption("Tahoma");
+    addOption("Microsoft Sans Serif");
+    setDefault("Courier New");
+  }
+  aFPArray[x] = new FunctionParameter("FontSize", FunctionParameter.NUMBER);
+  with(aFPArray[x++]) {
+    setDefault(12);
+  }
+  aFPArray[x] = new FunctionParameter("InvertGraphic", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(false);
+  }
+  aFPArray[x] = new FunctionParameter("GraphicForeColor", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.grey);
+  }
+  aFPArray[x] = new FunctionParameter("GraphicBackColor", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.black);
+  }
+  aFPArray[x] = new FunctionParameter("IBForeColor", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.white);
+  }
+  aFPArray[x] = new FunctionParameter("IBBackColor", FunctionParameter.COLOR);
+  with(aFPArray[x++]) {
+    setDefault(Color.black);
+  }
+  aFPArray[x] = new FunctionParameter("_showBidAsk", FunctionParameter.BOOLEAN);
+  with(aFPArray[x++]) {
+    setDefault(true);
+    setName("Show Bid/Ask at Price");
+  }
+  aFPArray[x] = new FunctionParameter("debugPW", FunctionParameter.STRING);
+  with(aFPArray[x++]) {
+    setDefault("none");
+    setName("debugPW");
+  }
+
+  _init = true;
+}
+
+function main(
+  TickSize,
+  DecPoints,
+  UseSpecialFormatting,
+  StartTime,
+  EndTime,
+  ShowDVAFrom,
+  FirstBracketLength,
+  FirstBracketLetter,
+  BracketLength,
+  ComputeOnClose,
+  ShowDVAH,
+  ShowDPOC,
+  ShowDVAL,
+  ShowVAH,
+  ShowPOC,
+  ShowVAL,
+  DVAHCol,
+  DPOCCol,
+  DVALCol,
+  VAHCol,
+  POCCol,
+  VALCol,
+  DVAHThick,
+  DPOCThick,
+  DVALThick,
+  VAHThick,
+  POCThick,
+  VALThick,
+  DVAHStyle,
+  DPOCStyle,
+  DVALStyle,
+  VAHStyle,
+  POCStyle,
+  VALStyle,
+  DVAHPlotType,
+  DPOCPlotType,
+  DVALPlotType,
+  VAHPlotType,
+  POCPlotType,
+  VALPlotType,
+  ShowUS,
+  ShowCS,
+  ShowFS,
+  USCol,
+  CSCol,
+  FSCol,
+  USThick,
+  CSThick,
+  FSThick,
+  USStyle,
+  CSStyle,
+  FSStyle,
+  ShowSLabels,
+  PopupSCreated,
+  PopupSFilled,
+  ShowGraphicButton,
+  ButtonBottom,
+  ButtonLeft,
+  PopupRFAlert,
+  SoundRFAlert,
+  Basis, BracketVolume,
+  ShowGraphic, FontType, FontSize, InvertGraphic, GraphicOffset,
+  GraphicForeColor, GraphicBackColor,
+  IBForeColor, IBBackColor,
+  _showBidAsk,
+  debugPW
+) {
+
+  if (getInterval() == "D") {
+    return;
+  }
+
+  // The code in here is only executed once each time the
+  // formula is loaded.
+  if (_init) {
+    if (debugPW == "whatiswrong") {
+      _debug = true;
+    } else {
+      _debug = false;
+    }
+
+    ClearGraphic();
+
+    if (Basis == "Time") {
+      _studyTitle = "DVATool (" + BracketLength + "min)";
+    } else {
+      _studyTitle = "DVATool (" + BracketVolume + "V)";
+    }
+    setStudyTitle(_studyTitle);
+
+    if (ShowGraphic == "true" || ShowGraphic == true)
+      _showGraphic = true;
+    else
+      _showGraphic = false;
+
+    if (InvertGraphic == "true" || InvertGraphic == true) {
+      _invertGraphic = true;
+      shapeType = Shape.RIGHTTRIANGLE;
+    } else {
+      _invertGraphic = false;
+      shapeType = Shape.LEFTTRIANGLE;
+    }
+
+    _fontType = FontType;
+    _fontSize = FontSize;
+    _graphicOffset = GraphicOffset;
+    _graphicForeColor = GraphicForeColor;
+    _graphicBackColor = GraphicBackColor;
+    _ibForeColor = IBForeColor;
+    _ibBackColor = IBBackColor;
+
+    _thisBarVol = 0;
+    _bracketVolSize = BracketVolume;
+    _volume = 0;
+
+    if (isDaily()) {
+      //do this
+    } else if (isRawTick()) {
+      var myInterval = getInterval()
+      var myIndex = myInterval.length;
+      if (myInterval.charAt(myIndex - 1) == "T") {
+        _nonTime = true;
+      } else if (myInterval.charAt(myIndex - 1) == "V") {
+        _nonTime = true;
+      }
+    }
+
+    PopulateHolidayList();
+
+    // set firstBracket var to the index of the first bracket
+    var i;
+    for (i = 0; i < MPLetters.length; i++) {
+      if (FirstBracketLetter == MPLetters[i]) {
+        firstBracket = i;
+        break;
+      }
+    }
+
+    // Assign parameter settings to global variables so that they can be used by
+    // functions without a million parameters in each function call.
+    _decPoints = DecPoints;
+    _showLabels = ShowSLabels;
+    _usCol = USCol;
+    _csCol = CSCol;
+    _fsCol = FSCol;
+    _showFS = ShowFS;
+    _showUS = ShowUS;
+    _showCS = ShowCS;
+    _fsThick = FSThick;
+    _usThick = USThick;
+    _csThick = CSThick;
+    _fsStyle = FSStyle;
+    _usStyle = USStyle;
+    _csStyle = CSStyle;
+    _popupSCreated = PopupSCreated;
+    _popupSFilled = PopupSFilled;
+    if (UseSpecialFormatting == "true" || UseSpecialFormatting == true) {
+      _useSpecialFormatting = true;
+    } else {
+      _useSpecialFormatting = false;
+    }
+
+    if (ComputeOnClose == true || ComputeOnClose == "true") {
+      setComputeOnClose();
+    }
+
+    // Set the bar styles
+    setDefaultBarStyle(eval(VAHStyle), 0);
+    setDefaultBarFgColor(VAHCol, 0);
+    setDefaultBarThickness(VAHThick, 0);
+    setPlotType(eval(VAHPlotType), 0);
+
+    setDefaultBarStyle(eval(POCStyle), 1);
+    setDefaultBarFgColor(POCCol, 1);
+    setDefaultBarThickness(POCThick, 1);
+    setPlotType(eval(POCPlotType), 1);
+
+    setDefaultBarStyle(eval(VALStyle), 2);
+    setDefaultBarFgColor(VALCol, 2);
+    setDefaultBarThickness(VALThick, 2);
+    setPlotType(eval(VALPlotType), 2);
+
+    setDefaultBarStyle(eval(DVAHStyle), 3);
+    setDefaultBarFgColor(DVAHCol, 3);
+    setDefaultBarThickness(DVAHThick, 3);
+    setPlotType(eval(DVAHPlotType), 3);
+
+    setDefaultBarStyle(eval(DPOCStyle), 4);
+    setDefaultBarFgColor(DPOCCol, 4);
+    setDefaultBarThickness(DPOCThick, 4);
+    setPlotType(eval(DPOCPlotType), 4);
+
+    setDefaultBarStyle(eval(DVALStyle), 5);
+    setDefaultBarFgColor(DVALCol, 5);
+    setDefaultBarThickness(DVALThick, 5);
+    setPlotType(eval(DVALPlotType), 5);
+
+    dvah = null;
+    dpoc = null;
+    dval = null;
+    vah = null;
+    poc = null;
+    val = null;
+
+    _tickSize = TickSize;
+
+    _waiting = true; // waiting for the time for the first bracket to start
+
+    // Split out start and end times
+    var hour, minute;
+    var timeString = StartTime.split(":");
+    hour = timeString[0];
+    minute = timeString[1];
+    firstMinute = hour * 60 + minute * 1;
+
+    timeString = EndTime.split(":");
+    hour = timeString[0];
+    minute = timeString[1];
+    lastMinute = hour * 60 + minute * 1;
+
+    timeString = ShowDVAFrom.split(":");
+    hour = timeString[0];
+    minute = timeString[1];
+    _showDVAFrom = hour * 60 + minute * 1;
+
+    // Calculate the number of brackets:
+    var totalMinutes = lastMinute - firstMinute;
+    if (totalMinutes < 1) {
+      WrapDPL("total minutes is less than 1");
+    }
+    totalMinutes -= FirstBracketLength;
+    var totalBrackets = totalMinutes / BracketLength;
+    WrapDPL("totalBrackets = " + totalBrackets);
+    WrapDPL("Math.ceil(totalBrackets) = " + Math.ceil(totalBrackets));
+    totalBrackets = Math.ceil(totalBrackets) + 1; // +1 is for first bracket
+
+    bracketEndTime = new Array(totalBrackets);
+    bracketHigh = new Array(totalBrackets);
+    bracketLow = new Array(totalBrackets);
+    bracketEndTime[0] = firstMinute + FirstBracketLength;
+    for (i = 1; i < totalBrackets; i++) {
+      bracketEndTime[i] = bracketEndTime[i - 1] + BracketLength;
+    }
+    bracketEndTime[totalBrackets - 1] = lastMinute; // in case the last bracket is short
+
+    for (i = 0; i < totalBrackets; i++) {
+      WrapDPL("Bracket " + i + " end time = " + bracketEndTime[i]);
+    }
+
+    _currentDay = getDay(0);
+
+    _init = false;
+  } // end of init
+
+  // Check to see if we are in the time zone for accumulating and calculating
+  // MP data. If so, activate (or keep active) the flag.
+  var hour = getHour(0);
+  var minute = getMinute(0);
+  var nowMinute = hour * 60 + minute;
+  if (nowMinute >= firstMinute && nowMinute < lastMinute) {
+
+    if (_currentDay != getDay(0) && _inTheZone == true) {
+      // then we need to close the previous day first
+      WrapDPL("_inTheZone is true on a new Day. _currentDay=" + _currentDay + " and getDay(0)=" + getDay(0));
+      CloseDay(); // will set _inTheZone to false;
+      _currentDay = getDay(0);
+    }
+
+    if (_inTheZone == false) {
+      if (ValidDate()) {
+        OpenDay(); // Do all initialisation here and set _inTheZone to true;
+      }
+    }
+  } else {
+    if (_inTheZone == true) {
+      CloseDay(); // Do all clean up here and set _inTheZone to false;
+    }
+  }
+
+  if (_inTheZone) {
+    // Check to see if we are still in the current bracket or if we have moved into
+    // the next bracket. If we've shifted into the next bracket then do a bracket roll.
+    var recalc = false;
+    var getCurrBracket;
+    if (Basis == "Time") {
+      getCurrBracket = GetBracket(nowMinute);
+    } else {
+      getCurrBracket = GetVolBracket(nowMinute);
+    }
+    var lowP = getLow(0);
+    var highP = getHigh(0);
+    if (currentBracket != getCurrBracket) {
+      WrapDPL("Switching bracket from " + currentBracket + " to " + getCurrBracket + " nowMinute = " + nowMinute);
+      currentBracket = getCurrBracket;
+
+      // If we are moving into the 3rd or subsequent brackets then we can
+      // start calculating the Rotation Factors
+      if (currentBracket > 2) {
+        if (currentBracketHigh > lastBracketHigh) _rotationFactor++;
+        if (currentBracketHigh < lastBracketHigh) _rotationFactor--;
+        if (currentBracketLow > lastBracketLow) _rotationFactor++;
+        if (currentBracketLow < lastBracketLow) _rotationFactor--;
+
+        AlertRF(PopupRFAlert, SoundRFAlert);
+      }
+
+      // Save the previous bracket highs to calculate the RFs
+      lastBracketHigh = currentBracketHigh;
+      lastBracketLow = currentBracketLow;
+
+      // Set the current bracket's high/low to this bar's high/low
+      currentBracketHigh = highP;
+      currentBracketLow = lowP;
+      AddTPO(currentBracketLow, currentBracketHigh);
+
+      // Now check for an unconfirmed single and if we find one then
+      // set _unconfirmedSingle to that value
+      UpdateSingles();
+
+      recalc = true;
+    }
+
+    // Check to see if the current bracket's high/low have been violated by the
+    // current bar's high/low and if they have then run an MP update.
+    if (highP > currentBracketHigh) {
+      AddTPO(currentBracketHigh + _tickSize, highP);
+      recalc = true;
+    }
+
+    if (lowP < currentBracketLow) {
+      AddTPO(lowP, currentBracketLow - _tickSize);
+      recalc = true;
+    }
+
+    if (recalc) {
+      SetPOC();
+      SetDVA();
+      recalc = false;
+    }
+
+    // If recalc wasn't set to true then possible that dval and/or dvah have
+    // been set to null lower down in main function because we were not in
+    // the active time zone. So set them here again just in case.
+    dval = _dval;
+    dvah = _dvah;
+
+    if (_showGraphic) {
+      var ii = RoundValue((close(0) - dayLow) / _tickSize);
+      DrawArrow(ii, close(0));
+    }
+
+    if (_showBidAsk) {
+      if (getCurrentBarIndex() == 0) {
+        var ii = RoundValue((close(0) - dayLow) / _tickSize);
+        if (getBarState() == BARSTATE_NEWBAR) {
+          _lastVolume = 0;
+        }
+        var lastSize = volume() - _lastVolume;
+        _lastVolume = volume();
+        var mrts = getMostRecentTradeSize();
+        var side = "ASK";
+        if (getMostRecentTrade() == getMostRecentAsk()) {
+          AddAsk(ii, mrts);
+        } else {
+          AddBid(ii, mrts);
+          side = "BID";
+        }
+      }
+    }
+
+  } else {
+    if (_currentDay != getDay(0)) {
+      NewDay();
+    }
+  }
+  var nState = getBarState();
+  if (nState == BARSTATE_ALLBARS) {
+    //the bars are being loaded by the script. This happens when a script is first loaded
+  } else if (nState == BARSTATE_NEWBAR) {
+
+  } else if (nState == BARSTATE_CURRENTBAR) {
+    ShowPendingAlerts();
+  }
+
+  if (ShowDVAH == "false" || ShowDVAH == false)
+    dvah = null;
+  if (ShowDPOC == "false" || ShowDPOC == false)
+    dpoc = null;
+  if (ShowDVAL == "false" || ShowDVAL == false)
+    dval = null;
+  if (ShowVAH == "false" || ShowVAH == false)
+    vah = null;
+  if (ShowPOC == "false" || ShowPOC == false)
+    poc = null;
+  if (ShowVAL == "false" || ShowVAL == false)
+    val = null;
+
+  // Don't show the Developing Value Area until we've passed the "show from" time.
+  if (nowMinute < _showDVAFrom) {
+    dvah = null;
+    dpoc = null;
+    dval = null;
+  }
+
+  return new Array(vah, poc, val, dvah, dpoc, dval);
+}
+
+// Study's title is held in a global variable so that it can be changed
+// by init functions if an error occurs during initialization.
+var _studyTitle = "DVATool";
+
+// _thisBarVol keeps track of the volume traded this bar because when a new bar
+// starts then volume(0) resets to 0 so we need to know what the volume on the
+// last bar was
+var _thisBarVol;
+
+// _bracketVolSize is the number of contracts traded per bracket. This is set
+// in the parameters.
+var _bracketVolSize;
+
+// _volume keeps track of the cumulative volume in case we are creating bars based on
+// volume instead of time.
+var _volume;
+
+// Used for parameters in init
+var aFPArray = new Array();
+
+// set to true when EFS/study is initially loaded or if it's reloaded
+var _init = true;
+
+// _showDVAFrom with only start showing (returning) the DVA values on or after the
+// time (in minutes) in the _showDVAFrom variable. This allows the calculation of
+// the DVA to take place earlier but does not start adding the lines to the chart
+// until later. This is because the DVA does not carry significance until a few
+// brackets have been produced.
+var _showDVAFrom = 0;
+
+var MPLetters = ["i", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h"];
+
+var firstMinute;
+var lastMinute;
+
+var firstBracket = 0;
+var currentBracket = 0;
+var numBrackets = null;
+var dvaColl = null;
+
+// pocIndex = the index of the item in the dvaColl that holds the POC
+var pocIndex = null;
+
+// the variables with _ in front of them always hold the last calculated value
+// of the specified variable while the variables without the _ are the values
+// that are returned to the chart - they can be blatted out (set to null)
+// under certain circumstances - like being outside a time zone etc.
+var _dvah, _dpoc, _dval;
+var dvah, dpoc, dval;
+var _vah, _poc, _val;
+var vah, poc, val;
+
+var _currentDay = null;
+
+var dayHigh = null;
+var dayLow = null;
+
+var _rotationFactor = 0;
+
+var currentBracketHigh = null;
+var currentBracketLow = null;
+var lastBracketHigh = null;
+var lastBracketLow = null;
+
+var _inTheZone = false;
+
+// This will format the text that is printed on the screen as 32nds or 64ths etc.
+// if the symbol is bond, currencies etc. that require special formatting if
+// this is set to true.
+var _useSpecialFormatting = false;
+
+// totalTPOs is counted during a call to GetPOC() which always has to be
+// called before we find the DVAH/DVAL
+var totalTPOs = 0;
+
+// if the debugPW "password" is correctly set in the parameters then the
+// _debug flag will be switched to true
+var _debug = false;
+
+// One dimensional array of integers that represent the number of TPOs at each price
+// level. There are as many elements in the array as (high - low) / _tickSize
+var TPO = null;
+// One dimensional array of letters that represent the graphic
+var TPOL = null;
+// BAP (Bids At Price) and AAP (Asks At Price) are one dimensional arrays that hold
+// the number of contracts traded at the ASK and BID at each price level.
+var BAP = null;
+var AAP = null;
+// elementCount holds the number of elements (the size) of the array.
+// Used for initializing the TPO and TPOL array
+var elementCount = 0;
+
+var _totalBids = 0;
+var _totalAsks = 0;
+
+// _nonTime gets set to true during the initialization phase if the
+// chart is a Volume or Tick based chart.
+var _nonTime = false;
+
+// This variable (_lastVolume) might be used for calculating the bid's
+// and ask's at price.
+var _lastVolume = 0;
+
+// upperIndex and lowerIndex are calculated in the SetDVA() function
+// these two variables index into the array at the DVAH and DVAL
+var upperIndex = null;
+var lowerIndex = null;
+
+// Number of decimal points to use when formatting output. Default is
+// 2 but can be changed in the parameters.
+var _decPoints = 2;
+// TickSize. Default is 0.1 for AB/ER2 but this and _decPoints values
+// are read from web file during parameter setup.
+var _tickSize = 0.1;
+
+function OpenDay() {
+  WrapDPL("Entered OpenDay()");
+  vah = _vah;
+  poc = _poc;
+  val = _val;
+
+  // Remove all graphic from previous day
+  ClearGraphic();
+  _initVol = true;
+
+  // Need to redraw the Confirmed Singles because the ClearGraphic() function removes all the labels from the chart.
+  DrawCSingles();
+  // Clear out filled singles
+  RemoveFSingles();
+
+  currentBracketHigh = dayHigh = getHigh(0);
+  currentBracketLow = dayLow = getLow(0);
+  elementCount = Math.round(dayHigh / _tickSize) - Math.round(dayLow / _tickSize) + 1;
+  elementCount = Math.ceil(elementCount);
+  WrapDPL(" ");
+  WrapDPL(" ");
+  WrapDPL(" *** START OF NEW DAY -> OpenDay() ++ getDay(0)=" + getDay(0));
+  WrapDPL(" ");
+  WrapDPL("Time is: " + getHour(0) + ":" + getMinute(0) + ":" + getSecond(0));
+  WrapDPL("_tickSize=" + _tickSize);
+  WrapDPL("elementCount in OpenDay() = " + elementCount);
+  WrapDPL("dayHigh in OpenDay() = " + dayHigh);
+  WrapDPL("dayLow in OpenDay() = " + dayLow);
+  TPO = null; // Not sure if this is needed but don't believe that it does any harm.
+  TPO = new Array(elementCount);
+  TPOL = null; // Not sure if this is needed but don't believe that it does any harm.
+  TPOL = new Array(elementCount);
+  BAP = null;
+  BAP = new Array(elementCount);
+  AAP = null;
+  AAP = new Array(elementCount);
+  currentBracket = 0;
+  _rotationFactor = 0;
+
+  var i;
+  for (i = 0; i < TPO.length; i++) {
+    TPO[i] = 0;
+    TPOL[i] = "";
+    BAP[i] = 0;
+    AAP[i] = 0;
+  }
+
+  _totalBids = _totalAsks = 0;
+
+  _currentDay = getDay(0);
+  _inTheZone = true;
+}
+
+// Add 1 to each price in the range specified to the array of TPOs
+// If the parameters are outside the range then expand the range
+function AddTPO(lowVal, highVal) {
+  WrapDPL("");
+  WrapDPL("AddTPO() " + lowVal + "  " + highVal);
+  WrapDPL("(on entry) dayLow = " + dayLow + " dayHigh = " + dayHigh);
+  var counter = 0;
+
+  if (_unconfirmedSingle != null) {
+    if (_unconfirmedSingle >= lowVal && _unconfirmedSingle <= highVal) {
+      RemoveUSingle();
+    }
+  }
+
+  if (_firstLowSingle != null) {
+    if (lowVal <= _firstLowSingle) {
+      RemoveLows(lowVal);
+    }
+  }
+  if (_firstHighSingle != null) {
+    if (highVal >= _firstHighSingle) {
+      RemoveHighs(highVal);
+    }
+  }
+
+  // First check to see if the lowVal is lower than the current low and if so expand the range
+  // and initialize those values to zero and then do the same with the highVal
+
+  if (lowVal < dayLow) {
+    var i;
+    for (i = lowVal; i < dayLow; i += _tickSize) {
+      BAP.unshift(0);
+      AAP.unshift(0);
+      TPO.unshift(0);
+      TPOL.unshift("");
+      counter++;
+    }
+    WrapDPL("Unshifted " + counter + " elements. Total elements=" + TPO.length);
+    dayLow = lowVal;
+  }
+  if (highVal > dayHigh) {
+    var i;
+    counter = 0;
+    for (i = dayHigh; i < highVal; i += _tickSize) {
+      BAP.push(0);
+      AAP.push(0);
+      TPO.push(0);
+      TPOL.push("");
+      counter++;
+    }
+    WrapDPL("Pushed " + counter + " elements. Total elements=" + TPO.length);
+    dayHigh = highVal;
+  }
+
+  var startIndex = Math.round((lowVal - dayLow) / _tickSize);
+  var endIndex = Math.round((highVal - dayLow) / _tickSize) + 1; // Need to add one because this range is inclusive of the last element
+  WrapDPL("startIndex=" + startIndex + " endIndex=" + endIndex);
+  for (i = startIndex; i < endIndex; i++) {
+    WrapDPL("TPO[" + i + "]++");
+    TPO[i]++;
+    TPOL[i] += MPLetters[currentBracket + firstBracket - 1];
+    // When the line above happens we must print the letters
+    // to the RHS (or wherever) of the chart. This is achieved
+    // with the UpdateGraphic() function below.
+    UpdateGraphic(i);
+  }
+
+  // Now check to see if any of the TPO's have a value
+  // of zero - this is an error and needs to be fixed
+  for (i = 0; i < TPO.length; i++) {
+    if (isNaN(TPO[i])) {
+      WrapDPL("TPO[" + i + "] is NaN");
+    } else if (TPO[i] == 0) {
+      WrapDPL("TPO[" + i + "] is 0");
+    }
+  }
+
+  currentBracketHigh = Math.max(currentBracketHigh, highVal);
+  currentBracketLow = Math.min(currentBracketLow, lowVal);
+}
+
+function NewDay() {
+  vah = _vah;
+  poc = _poc;
+  val = _val;
+
+  _unconfirmedSingle = null;
+  _currentDay = getDay(0);
+}
+
+
+var _fsCol = Color.red;
+var _usCol = Color.yellow;
+var _csCol = Color.white;
+
+var _fsThick = 4;
+var _usThick = 4;
+var _csThick = 4;
+
+var _fsStyle = "PS_DOT";
+var _usStyle = "PS_DOT";
+var _csStyle = "PS_DOT";
+
+var _showFS = true;
+var _showCS = true;
+var _showUS = true;
+
+// if _showGraphic is set to true then we print the MP graphic to the
+// right of the chart.
+var _showGraphic;
+
+// TODO: _aapOffset and _bapOffset needs to be a parameter
+var _bapOffset = 20;
+var _aapOffset = 29;
+var _showTotals = true;
+var _showPercent = false;
+
+var _graphicPriceMarker = "GraphicPriceMarker";
+
+var _popupSCreated = true;
+var _popupSFilled = true;
+var _showLabels = true;
+var sLabelPos = "Left";
+var showPrice = true;
+
+// _graphicOffset determines where we print the graphic - i.e. on which bar
+var _graphicOffset
+
+// If there are no unconfirmed singles then this value will be set to null
+// otherwise it will be set to the value of the unconfirmed single
+var _unconfirmedSingle = null;
+var filledSingles = new Array();
+var filledSingleLabels = new Array();
+var upperSingles = new Array();
+var upperSingleLabels = new Array();
+var lowerSingles = new Array();
+var lowerSingleLabels = new Array();
+
+var _firstLowSingle = null;
+var _firstHighSingle = null;
+
+var _holidayDates = new Array();
+
+var _graphicForeColor, _graphicBackColor;
+var _ibForeColor, _ibBackColor;
+var _invertGraphic;
+var _fontType = "Courier New";
+var _fontSize = 12;
+
+// shapeType is either a Shape.RIGHTTRIANGLE or Shape.LEFTTRIANGLE
+// depending on whether the MP graphic is inverted or normal.
+var shapeType;
+
+// ii is index into TPOL to update
+function UpdateGraphic(ii) {
+  if (!_showGraphic) {
+    return;
+  }
+
+  var foreColor, backColor;
+  if (currentBracket < 3) {
+    foreColor = _ibForeColor;
+    backColor = _ibBackColor;
+  } else {
+    foreColor = _graphicForeColor;
+    backColor = _graphicBackColor;
+  }
+
+  var hLoc = TPOL[ii].length - 1;
+  var letterToPrint = TPOL[ii].charAt(hLoc);
+
+  var atPrice = RoundValue(dayLow + _tickSize * ii);
+  var labelID = atPrice + "X" + hLoc;
+  WrapDPL("labelID in UpdateGraphi(): " + labelID);
+
+  var xLoc = _graphicOffset;
+  if (_invertGraphic) {
+    xLoc = _graphicOffset - hLoc;
+  } else {
+    xLoc = _graphicOffset + hLoc;
+  }
+  drawTextAbsolute(xLoc, atPrice, letterToPrint,
+    foreColor, backColor, eval("Text.LEFT|Text.VCENTER|Text.ONTOP"), _fontType,
+    _fontSize, labelID);
+
+}
+// Draws an arrow next to the current price
+// ii (first param) is index into TPOL which is at the current price
+// atPrice is the current price at which to draw the value.
+function DrawArrow(ii, atPrice) {
+  if (TPOL == null || TPOL[ii] == null) {
+    return;
+  }
+  var hLoc = TPOL[ii].length - 1;
+
+  var shapeLoc;
+  if (_invertGraphic) {
+    xLoc = _graphicOffset - hLoc;
+    shapeLoc = xLoc - 2;
+  } else {
+    xLoc = _graphicOffset + hLoc;
+    shapeLoc = xLoc + 2;
+  }
+  drawShapeAbsolute(shapeLoc, atPrice, shapeType, null, Color.lime, Shape.ONTOP, _graphicPriceMarker);
+}
+
+function AddAsk(ii, contracts) {
+  _totalAsks += contracts;
+  AddBidAsk(ii, contracts, AAP, _totalAsks, _aapOffset, "Ask");
+}
+
+function AddBid(ii, contracts) {
+  _totalBids += contracts;
+  AddBidAsk(ii, contracts, BAP, _totalBids, _bapOffset, "Bid");
+}
+
+function AddBidAsk(ii, contracts, baAr, total, baOffset, bORa) {
+  if (baAr == null || baAr[ii] == null) {
+    return;
+  }
+
+  var foreColor = Color.grey;
+  var backColor = Color.black;
+
+  baAr[ii] += contracts;
+  var atPrice = RoundValue(dayLow + _tickSize * ii);
+  var labelID = atPrice + bORa;
+  var displayValue;
+  // TODO: To show the percent we need to change the displayed values of the entire
+  //       array because each element will change when the percent changes.
+  //       As such this has been temporarily disabled.
+  if (_showPercent) {
+    displayValue = RoundNumber(baAr[ii] * 100 / total, 1);
+    total = 100;
+  } else {
+    displayValue = baAr[ii];
+  }
+  drawTextAbsolute(baOffset, atPrice, displayValue,
+    foreColor, backColor, eval("Text.RIGHT|Text.VCENTER|Text.ONTOP"), _fontType,
+    _fontSize, labelID);
+  if (_showTotals) {
+    drawTextAbsolute(baOffset, (dayLow - _tickSize), total,
+      foreColor, backColor, eval("Text.RIGHT|Text.VCENTER|Text.ONTOP"), _fontType,
+      _fontSize, bORa + "Totals");
+  }
+}
+
+function ClearGraphic() {
+  /*  Remove all text objects currently drawn on the chart by drawText(), drawTextRelative(), drawTextAbsolute() or drawTextPixel(). */
+  // clearText() is an attempt to fix a problem where some of the TPO stragglers where left on the chart after the alternate
+  // loop below (now commented out) ran through and tried to clear out the values.
+  // Current side effect of this is that it also clears out the Singles Lables - may need to print these again somehow...
+  clearText();
+  /*
+    if(TPOL == null)
+        return;
+    if(TPOL.length == 0)
+        return;
+    var i;
+    for(i=0; i<TPOL.length; i++) {
+        var atPrice = RoundValue(dayLow + _tickSize * i);
+    var labelID = atPrice + "Bid";
+    WrapDPL("calling removeText(\"" + labelID + "\")");
+    removeText(labelID);
+    labelID = atPrice + "Ask";
+    WrapDPL("calling removeText(\"" + labelID + "\")");
+    removeText(labelID);
+        for(x=0; x<TPOL[i].length; x++) {
+            var labelID = atPrice + "X" + x;
+      WrapDPL("calling removeText(\"" + labelID + "\")");
+            removeText(labelID);
+        }
+    }
+    removeText("BidTotals");
+    removeText("AskTotals");
+    removeShape(_graphicPriceMarker);
+*/
+}
+
+function DrawBand(txtName, atPrice, bandColor, thickness, style) {
+  var intVal = Math.round(atPrice / _tickSize);
+  var bandID = "CS" + intVal;
+  var labelID = "SL" + intVal;
+  addBand(atPrice, eval(style), thickness, bandColor, bandID);
+  if (_showLabels == "true" || _showLabels == true) {
+    var sTextFlags, nTextX;
+    if (sLabelPos == "Right") {
+      sTextFlags = "Text.LEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+      nTextX = 2;
+    } else {
+      sTextFlags = "Text.RELATIVETOLEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+      nTextX = 0;
+    }
+    //var txtName = GetName(i, Values);
+    if (showPrice) {
+      if (_useSpecialFormatting) {
+        txtName += " [" + formatPriceNumber(atPrice) + "]";
+      } else {
+        txtName += " [" + atPrice.toFixed(_decPoints) + "]";
+      }
+    }
+    drawTextAbsolute(nTextX, atPrice, txtName,
+      Color.white, Color.blue, eval(sTextFlags), null, 10, labelID);
+  }
+}
+
+function RemoveBand(atPrice) {
+  var intVal = Math.round(atPrice / _tickSize);
+  var bandID = "CS" + intVal;
+  var labelID = "SL" + intVal;
+  removeBand(bandID);
+  removeText(labelID);
+}
+
+function RemoveLows(lowVal) {
+  while (lowVal <= _firstLowSingle) {
+    RemoveBand(_firstLowSingle);
+
+    if (_popupSFilled == "true" || _popupSFilled == true) {
+      Alert.addToList(getSymbol(), "Filled Single: " +
+        lowerSingleLabels[lowerSingleLabels.length - 1] + " at " +
+        RoundValue(lowerSingles[lowerSingles.length - 1]), Color.white, Color.green);
+    }
+
+    filledSingles.push(lowerSingles.pop());
+    filledSingleLabels.push(lowerSingleLabels.pop());
+    _firstLowSingle = lowerSingles[lowerSingles.length - 1];
+  }
+  if (_showFS == "true" || _showFS == true) {
+    DrawFSingles();
+  }
+}
+
+function RemoveHighs(highVal) {
+  while (highVal >= _firstHighSingle) {
+    RemoveBand(_firstHighSingle);
+
+    if (_popupSFilled == "true" || _popupSFilled == true) {
+      Alert.addToList(getSymbol(), "Filled Single: " +
+        upperSingleLabels[upperSingleLabels.length - 1] + " at " +
+        RoundValue(upperSingles[upperSingles.length - 1]), Color.white, Color.green);
+    }
+
+    filledSingles.push(upperSingles.pop());
+    filledSingleLabels.push(upperSingleLabels.pop());
+    _firstHighSingle = upperSingles[upperSingles.length - 1];
+  }
+  if (_showFS == "true" || _showFS == true) {
+    DrawFSingles();
+  }
+}
+
+function DrawFSingles() {
+  var i;
+  for (i = 0; i < filledSingles.length; i++) {
+    if (_showFS == "true" || _showFS == true) {
+      DrawBand(filledSingleLabels[i], filledSingles[i], _fsCol, _fsThick, _fsStyle);
+    }
+  }
+}
+
+function DrawCSingles() {
+  var i;
+  for (i = 0; i < upperSingles.length; i++) {
+    if (_showCS == "true" || _showCS == true) {
+      DrawBand(upperSingleLabels[i], upperSingles[i], _csCol, _csThick, _csStyle);
+    }
+  }
+  for (i = 0; i < lowerSingles.length; i++) {
+    if (_showCS == "true" || _showCS == true) {
+      DrawBand(lowerSingleLabels[i], lowerSingles[i], _csCol, _csThick, _csStyle);
+    }
+  }
+}
+
+function RemoveFSingles() {
+  // This function removes all the filled singles from the chart
+  // Typically called once a day at the open
+  WrapDPL("Entered RemoveFSingles()");
+  while (filledSingles.length != 0) {
+    RemoveBand(filledSingles.pop());
+    filledSingleLabels.pop();
+  }
+}
+
+function RemoveUSingle() {
+  if (_unconfirmedSingle != null) {
+    RemoveBand(_unconfirmedSingle);
+    _unconfirmedSingle = null;
+  }
+}
+
+function DrawUSingle() {
+  if (_unconfirmedSingle != null) {
+    var label = "Unconf. Single " + MPLetters[currentBracket + firstBracket - 2] + " bracket ";
+    if (_showUS == "true" || _showUS == true) {
+      DrawBand(label, _unconfirmedSingle, _usCol, _usThick, _usStyle);
+    }
+    //debugPrintln("");
+    //debugPrintln("USingle on: " + getMonth(0) + "/" + getDay(0) + " at " + _unconfirmedSingle);
+    //debugPrintln("in bracket: " + MPLetters[currentBracket + firstBracket - 2]);
+  }
+}
+
+function UpdateSingles() {
+  // This function is called immediately after we have rolled
+  // onto the next bracket. At this point we need to find
+  // if the unconfirmedSingle (if there is one) has become
+  // confirmed and see if a new unconfirmedSingle has formed.
+
+  // This function is also called from the CloseDay() function
+
+  // We need to be in the 3rd bracket before we can start
+  // looking for our fist single
+  if (currentBracket < 3) {
+    if (_unconfirmedSingle != null) {
+      // Why does this happen? Perhaps an unconfirmed single has been left from the previous day...
+      // In this case remove the unconfirmed single
+      RemoveUSingle();
+    }
+    return;
+  }
+
+  if (_unconfirmedSingle != null) {
+    var label = MPLetters[currentBracket + firstBracket - 3] + " bracket single " + getMonth(0) + "/" + getDay(0);
+    // Need to push this onto the confirmed singles list
+    if (getClose(0) > _unconfirmedSingle) {
+      _firstLowSingle = _unconfirmedSingle;
+      lowerSingles.push(_unconfirmedSingle);
+      lowerSingleLabels.push(label);
+      if (_popupSCreated == "true" || _popupSCreated == true) {
+        Alert.addToList(getSymbol(), "New Single: " + label + " at " + RoundValue(lowerSingles[lowerSingles.length - 1]), Color.white, Color.blue);
+      }
+    } else {
+      _firstHighSingle = _unconfirmedSingle;
+      upperSingles.push(_unconfirmedSingle);
+      upperSingleLabels.push(label);
+      if (_popupSCreated == "true" || _popupSCreated == true) {
+        Alert.addToList(getSymbol(), "New Single: " + label + " at " + RoundValue(upperSingles[upperSingles.length - 1]), Color.white, Color.blue);
+        WrapDPL("single=" + _unconfirmedSingle + " label=" + label + " [pushed on upper]");
+      }
+    }
+
+    RemoveUSingle();
+
+    DrawCSingles();
+  }
+
+  // letter1 is the letter that represents the last bracket that has just closed
+  // and the one that we want to check to see if there are unconfirmed single
+  // prints for.
+  var letter1 = MPLetters[currentBracket + firstBracket - 2];
+
+  // lowIndex and highIndex show where the double TPOs start
+  // need to find these first to exclude the buying and selling
+  // tails.
+  var lowIndex = null;
+  var highIndex = null;
+  for (i = 0; i < TPOL.length; i++) {
+    if (TPOL[i].length > 1) {
+      lowIndex = i;
+      break;
+    }
+  }
+  for (i = TPOL.length - 1; i >= 0; i--) {
+    if (TPOL[i].length > 1) {
+      highIndex = i;
+      break;
+    }
+  }
+
+  // Validate the values of highIndex and lowIndex
+  if (highIndex == null || lowIndex == null || highIndex == lowIndex) {
+    debugPrintln("UpdateSingles() aborted for symbol: " + getSymbol() + " because highIndex=" + highIndex +
+      " and lowIndex=" + lowIndex + " on bar: " + getMonth(0) + "/" + getDay(0) +
+      "/" + getYear(0) + " " + getHour(0) + ":" + getMinute(0) + ":" + getSecond(0));
+    return;
+  }
+
+  // We need to know the index value for the last price because this
+  // will be used to determine if we use the first or last single
+  // print
+  var currIndex = Math.round((getClose(0) - dayLow) / _tickSize);
+
+  // Now we need to go through the remaining letters and see if letter1 (which
+  // is the previous bracket's letter) appears by itself at a price in the histogram.
+  // So what is happening here is that we have already excluded the buying and selling
+  // tails. This means that any other single letters that we come across in the histogram
+  // are single prints. If we focus on only the last bracket created then we are only
+  // looking at unconfirmed single prints - which is the case here.
+  for (i = lowIndex; i <= highIndex; i++) {
+    if (TPO[i] == 1 && TPOL[i] == letter1) {
+      // we have an unconfirmed single
+      // if the current price is above us then the Unconfirmed
+      // Single will be this one.
+      if (currIndex > i) {
+        _unconfirmedSingle = dayLow + (_tickSize * i);
+        break;
+      }
+
+      // if the current price is below us then the Unconfirmed
+      // Single will be at the top so we need to find the last
+      // single letter.
+      while (TPO[i] == 1 && TPOL[i] == letter1) {
+        i++;
+      }
+      // i is now 1 too many
+      i--;
+      _unconfirmedSingle = dayLow + (_tickSize * i);
+      break;
+    }
+  }
+
+  if (_unconfirmedSingle != null) {
+    DrawUSingle();
+  }
+}
+
+function CloseDay() {
+  _vah = _dvah;
+  _poc = _dpoc;
+  _val = _dval;
+
+  dvah = null;
+  dpoc = null;
+  dval = null;
+
+  // Should current bracket be incremented here? Difficult question?
+  // If not then the UpdateSingles() function will not record the
+  // correct bracket for the last single.
+  // currentBracket is currently not used again from here onwards
+  // until next day when it is reset.
+  currentBracket++;
+  UpdateSingles();
+
+  _inTheZone = false;
+
+  WrapDPL(" ");
+  WrapDPL(" CloseDay() - info about past day:");
+  WrapDPL("Low=" + dayLow + " High=" + dayHigh);
+  WrapDPL("Total TPOs=" + totalTPOs);
+  WriteGraphic();
+  WrapDPL(" ");
+}
+
+function postMain() {
+  var i;
+  WrapDPL(" ");
+  WrapDPL(" postMain() - unloading");
+  WrapDPL("Low=" + dayLow + " High=" + dayHigh);
+  WrapDPL("Total TPOs=" + totalTPOs);
+  WriteGraphic();
+}
+
+function GetLocalFileWithWebUpdateIfNeccessary(localFile) {
+  // GetLocalFileWithWebUpdateIfNeccessary() returns a File object
+  // to the calling function.
+  // If the file does not exist locally then the function
+  // tries to copy the file to the local location by iterating
+  // through all of the servers. If it manages to find a file
+  // and successfully download it to the local drive it will
+  // return the File object otherwise it will return null.
+  var f = new File(localFile);
+  if (!f.exists()) {
+    debugPrintln("Local holiday file does not exist (yet)");
+    var i;
+    for (i = 0; i < webDataFileLocation.length; i++) {
+      debugPrintln("entered loop to copy file from web");
+      if (CopyFileFromWeb(webDataFileLocation[i], localFile)) {
+        // break out of loop after first successful copy
+        debugPrintln("CopyFileFromWeb() success");
+        break;
+      } else {
+        debugPrintln("CopyFileFromWeb() failure");
+      }
+    }
+    // Now try and open it again
+    f = null;
+    f = new File(localFile);
+    if (!f.exists()) {
+      debugPrintln("File STILL does not exist");
+      var errString = " (Could not open holiday file so if holiday in recent days then some figures may be wrong)";
+      debugPrintln(errString);
+      setStudyTitle(_studyTitle + errString);
+      return null;
+    }
+  }
+  var success = f.open("rt");
+  if (success) {
+    return f;
+  }
+  return null;
+}
+
+var webDataFileLocation = new Array(
+  "http://www.mypivots.com/Esignal/",
+  "http://www.emini.info/Esignal/");
+
+// Function: GetTickSize()
+//
+// This function returns the tick size as found in the tick file
+// on the web or it returns a default size of 0.1
+var _setTickSizeRun = false;
+
+function SetTickSize() {
+  debugPrintln("entered SetTickSize()");
+  if (_setTickSizeRun) {
+    return;
+  }
+  _setTickSizeRun = true;
+  debugPrintln("SetTickSize() entered");
+  var updateFile = false;
+  var localFile = "TickSize";
+  var f = GetLocalFileWithWebUpdateIfNeccessary(localFile);
+
+  if (f == null) {
+    debugPrintln("DVATool: Failed to locate and load TickSize file");
+    var errString = " (Could not open ticksize file so you must manually set the tick size in the parameters.)";
+    debugPrintln(errString);
+    setStudyTitle(_studyTitle + errString);
+  } else {
+    var sym1 = getSymbol().split(" ");
+    while (!f.eof()) {
+      var line = f.readln();
+      if (line != null) {
+        var _values = line.split(",");
+        if (_values.length > 1) {
+          if (_values[0] == "LastUpdate") {
+            updateFile = NeedUpdate(_values[1], 7);
+          } else if (_values[0] == sym1[0]) {
+            if (_values.length > 2) {
+              if (_values[1] != null) {
+                _tickSize = parseFloat(_values[1]);
+              }
+              if (_values[2] != null) {
+                _decPoints = parseInt(_values[2]);
+              }
+              debugPrintln("TickSize set to: " + _tickSize +
+                " and decimal points to " + _decPoints);
+            } else {
+              debugPrintln("Too few items in ticksize file line: " + line);
+            }
+            break;
+          }
+        }
+      } else {
+        break;
+      }
+    }
+    f.close();
+  }
+  f = null;
+
+  if (updateFile) {
+    for (i = 0; i < webDataFileLocation.length; i++) {
+      if (CopyFileFromWeb(webDataFileLocation[i], localFile)) {
+        // break out of loop after first successful copy
+        break;
+      }
+    }
+  }
+  debugPrintln("exit SetTickSize()");
+}
+
+var _populateHolidayListRun = false;
+
+function PopulateHolidayList() {
+  if (_populateHolidayListRun) {
+    return;
+  }
+  _populateHolidayListRun = true; // set this to true immediately. if there is an error it prevents this enter a long loop
+  var updateFile = false;
+  var localFile = "Holidays";
+  var f = GetLocalFileWithWebUpdateIfNeccessary(localFile);
+  if (f == null) {
+    var errString = " (Could not open holiday file so if holiday in recent days then some figures may be wrong)";
+    debugPrintln(errString);
+    setStudyTitle(_studyTitle + errString);
+  } else {
+    WrapDPL("Start PopulateHolidayList()");
+    while (!f.eof()) {
+      var line = f.readln();
+      WrapDPL("line from file: " + line);
+      debugPrintln("line=" + line);
+      if (line != null) {
+        var firstSplit = line.split(",");
+        if (firstSplit.length > 1) {
+          if (firstSplit[0] == "LastUpdate") {
+            updateFile = NeedUpdate(firstSplit[1], 7);
+          } else {
+            var values = firstSplit[1].split("/");
+            if (values.length == 3) {
+              WrapDPL("date retrieved: " + values[0] + "/" + values[1] + "/" + values[2]);
+              _holidayDates.push(new Date(values[2], (values[0] - 1), values[1]));
+              WrapDPL("Date from object: " + _holidayDates[_holidayDates.length - 1]);
+            }
+          }
+        }
+      } else {
+        break;
+      }
+    }
+    f.close();
+  }
+  f = null;
+  WrapDPL("End PopulateHolidayList()");
+
+  if (updateFile) {
+    for (i = 0; i < webDataFileLocation.length; i++) {
+      if (CopyFileFromWeb(webDataFileLocation[i], localFile)) {
+        // break out of loop after first successful copy
+        break;
+      }
+    }
+  }
+}
+
+function NeedUpdate(sDate, iNumDays) {
+  debugPrintln("sDate=" + sDate + " iNumDays=" + iNumDays);
+  var values = sDate.split("/");
+  if (values.length == 3) {
+    var nextUpdate = new Date(values[2], (values[0] - 1), values[1]);
+    var today = new Date();
+    nextUpdate.setDate(nextUpdate.getDate() + iNumDays);
+    debugPrintln("sDate=" + sDate + " nextUpdate=" + nextUpdate +
+      " today=" + today + " iNumDays=" + iNumDays);
+    if (today >= nextUpdate) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function CopyFileFromWeb(webFileLocation, localFile) {
+  debugPrintln("CopyFileFromWeb(" + webFileLocation + ", " + localFile + ")");
+  var f = new HTTP(webFileLocation + localFile);
+  var success = f.open("rt");
+  if (!success) {
+    debugPrintln("Could not open web file to copy locally.");
+    f = null;
+    return false;
+  } else {
+    // Check that web page is not an error page before copying.
+    debugPrintln("1");
+    var webLines = new Array();
+    debugPrintln("2");
+    while (!f.eof()) {
+      var line = f.readln();
+      // All lines in all of the data files must have a comma to spearate info
+      // If this comma does not exist then there is an error with the web site
+      if (line != null) {
+        var splitTest = line.split(",");
+        if (splitTest.length > 1) {
+          webLines.push(line);
+        } else {
+          // Error with web file. Return without further processing.
+          f = null;
+          return false;
+        }
+      }
+    }
+
+    if (webLines.length == 0) {
+      return false;
+    }
+
+    // Open local file to write to.
+    var fLocal = new File(localFile);
+    fLocal.open("wt");
+
+    // First line must be the date that this file was last updated on
+    var today = new Date();
+    fLocal.writeln("LastUpdate," + (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear());
+
+    // Work through all lines from remote file
+    var i;
+    for (i = 0; i < webLines.length; i++) {
+      fLocal.writeln(webLines[i]);
+    }
+    fLocal.close();
+  }
+  f = null;
+  return true;
+}
+
+function ValidDate() {
+  // Function ValidDate
+  // Purpose: Check to see if date on this bar is a Sunday or a Holiday
+  // Uses the list that has been populated by the PopulateHolidayList()
+  // function so this should have been called before this function is
+  // called.
+  var returnValue = true;
+  var dd = new Date(getYear(0), getMonth(0) - 1, getDay(0));
+  if (dd.getDay() == 0) {
+    // i.e. a sunday
+    WrapDPL("returning false from ValidDate() [probably because it's a sunday");
+    returnValue = false;
+  }
+
+  var i;
+  for (i = 0; i < _holidayDates.length; i++) {
+    if (
+      _holidayDates[i].getYear() == dd.getYear() &&
+      _holidayDates[i].getMonth() == dd.getMonth() &&
+      _holidayDates[i].getDate() == dd.getDate()
+    ) {
+      WrapDPL("holiday date, year=" + dd.getYear() + " month=" + dd.getMonth() + " day=" + dd.getDate());
+      WrapDPL("so return false from ValidDate()");
+      returnValue = false;
+      break;
+    }
+  }
+
+  WrapDPL("returning true from ValidDate");
+  return returnValue;
+}
+
+function SetPOC() {
+  // Function SetPOC()
+  //
+  // The following algorthm is use to calculate the POC
+  //
+  // 1. The POC is the price at which the most TPOs occur
+  // 2. If there are 2 or more prices at which the same 'most' TPOs occur
+  //    then the price which is closest to the mid point of the range is
+  //    the POC.
+  //    PART 3 onwards have not been implemented
+  // 3. If 2 prices which have 'most' TPOs are equi-distance from the MidPoint
+  //    the the price on the side of the MidPoint that has the
+  var i;
+  var MidPoint = TPO.length / 2;
+  WrapDPL("MidPoint=" + MidPoint);
+
+  pocIndex = 0;
+  totalTPOs = 0;
+  var maxTPOs = 0;
+  for (i = 0; i < TPO.length; i++) {
+    if (TPO[i] == maxTPOs) {
+      if (Math.abs(pocIndex - MidPoint) > Math.abs(i - MidPoint)) {
+        pocIndex = i;
+      }
+    }
+    if (TPO[i] > maxTPOs) {
+      pocIndex = i;
+      maxTPOs = TPO[i];
+    }
+    totalTPOs += TPO[i];
+  }
+
+  _dpoc = dpoc = dayLow + pocIndex * _tickSize;
+
+  WrapDPL("pocIndex = " + pocIndex + " Max TPOs=" + maxTPOs);
+  WrapDPL("dpoc=" + dpoc);
+}
+
+function SetDVA() {
+  // Function: SetDVA()
+  //
+  // This function must be called after SetPOC() has been called or must
+  // call SetPOC() at the beginning because we need an updated dpoc
+  // before finding the dvah and dval
+  //
+  var cumTPO = 0;
+  lowerIndex = upperIndex = pocIndex;
+
+  var side = 1;
+  var upperSide = 0;
+  var lowerSide = 0;
+  var i, moveUp, moveDown;
+  for (i = 0; i < TPO.length; i++) {
+    if (i < pocIndex) {
+      lowerSide += TPO[i];
+    }
+    if (i > pocIndex) {
+      upperSide += TPO[i];
+    }
+  }
+  if (upperSide < lowerSide) {
+    side = -1;
+  }
+
+  var upperTPOcount = 0;
+  var lowerTPOcount = 0;
+  while (cumTPO / totalTPOs < .68) {
+    if (upperIndex + 2 < TPO.length) {
+      upperTPOcount = TPO[upperIndex + 1] + TPO[upperIndex + 2];
+      moveUp = 2;
+    } else if (upperIndex + 1 < TPO.length) {
+      upperTPOcount = TPO[upperIndex + 1];
+      moveUp = 1;
+    } else {
+      upperTPOcount = 0;
+      moveUp = 0;
+    }
+
+    if (lowerIndex > 1) {
+      lowerTPOcount = TPO[lowerIndex - 1] + TPO[lowerIndex - 2];
+      moveDown = -2;
+    } else if (lowerIndex > 0) {
+      lowerTPOcount = TPO[lowerIndex - 1];
+      moveDown = -1;
+    } else {
+      lowerTPOcount = 0;
+      moveDown = 0;
+    }
+
+    var tpoMax = Math.max(lowerTPOcount, upperTPOcount);
+    // Note: Problem at the moment is the eSignal MP chart not getting
+    //       the TPOs in the right high/low brackets
+    // The equation below may need to be modified to > instead of
+    // >= (need to play around with this)
+    if ((cumTPO + tpoMax) / totalTPOs >= 0.68) {
+      break;
+    }
+
+    if (lowerTPOcount > upperTPOcount) {
+      cumTPO += lowerTPOcount;
+      lowerIndex += moveDown;
+    } else {
+      cumTPO += upperTPOcount;
+      upperIndex += moveUp;
+
+      if (moveUp == 0) {
+        // This will happen during the first few bars and does not matter
+        // but it can be monitored using debug statements
+        //var datObj = new Date();
+        var hourS = getHour(0) + ":";
+        if (hourS.length < 3)
+          hourS = "0" + hourS;
+        var minuteS = getMinute(0) + " ";
+        if (minuteS.length < 3)
+          minuteS = "0" + minuteS;
+
+        WrapDPL("TPO counts cannot be correctly counted at: " + hourS + minuteS);
+        // if we don't break out here then we'll get trapped in this while loop
+        break;
+      }
+    }
+  }
+  //WrapDPL("SetDVA() lowerIndex=" + lowerIndex);
+  _dval = dval = dayLow + lowerIndex * _tickSize;
+  _dvah = dvah = dayLow + upperIndex * _tickSize;
+}
+
+function GetBracket(nowMinute) {
+  if (nowMinute < firstMinute) {
+    return -1;
+  }
+  if (nowMinute > lastMinute) {
+    return -1;
+  }
+  var i;
+  for (i = 0; i < bracketEndTime.length; i++) {
+    if (nowMinute < bracketEndTime[i])
+      return (i + 1);
+  }
+  return -1;
+}
+
+// This gets set to true at the start of a new day so that we know that we need
+// to initialize the variables used in the GetVolBracket() function the first
+// time that the time passes the startTime (firstMinute) variable.
+var _initVol = true;
+
+// Specialized function to get the current bracket if the MP graphic
+// is based on volume and not on time. In the case of a Volume "basis"
+// MP graphic we start a new bracket each X number of contracts traded.
+// We only start counting contracts after the start time.
+function GetVolBracket(nowMinute) {
+  if (nowMinute < firstMinute) {
+    _initVol = true;
+    return -1;
+  }
+  if (nowMinute > lastMinute) {
+    _initVol = true;
+    return -1;
+  }
+
+  if (_initVol) {
+    // need to initialize this function each day so that on first entry
+    // after the specified time we start on the right bracket.
+
+    // On first entry to this function (after a new day has started)
+    // the value of currentBracket will be 0. We need to set this to
+    // 1 as this is the value of the current bracket that we're in.
+    currentBracket = 1;
+
+    // we also need to initialize the volume and current bar volume to
+    // zero.
+    _volume = _thisBarVol = 0;
+    _initVol = false;
+  }
+
+  if (getBarState() == BARSTATE_NEWBAR) {
+    _volume += _thisBarVol;
+  }
+  _thisBarVol = volume(0);
+  var _volBracket = currentBracket;
+  if (_volume + _thisBarVol >= _bracketVolSize) {
+    _volBracket++;
+    _volume = _bracketVolSize - (_volume + _thisBarVol);
+  }
+
+  return _volBracket;
+}
+
+function WrapDPL(textToPrint) {
+  if (_debug) {
+    debugPrintln(textToPrint);
+  }
+}
+
+function WriteGraphic() {
+  if (TPO != null) {
+    WrapDPL("Total elements=" + TPO.length);
+    for (i = 0; i < TPO.length; i++) {
+      WrapDPL("TPO[" + i + "] Price[" + Math.round((dayLow + i * _tickSize) / _tickSize) + "] TPO count=" + TPO[i]);
+    }
+  }
+}
+
+function WriteGraphic3() {
+  var XXX;
+  if (TPO != null) {
+    debugPrintln("Total range in ticks=" + TPO.length);
+    for (i = 0; i < TPO.length; i++) {
+      XXX = "";
+      var n;
+      for (n = 0; n < TPO[i]; n++) {
+        XXX += "X";
+      }
+      if (i == upperIndex) {
+        XXX += " [DVAH]";
+      }
+      if (i == lowerIndex) {
+        XXX += " [DVAL]";
+      }
+      if (i == pocIndex) {
+        XXX += " [DPOC]";
+      }
+      debugPrintln("Price[" +
+        (dayLow + i * _tickSize).toFixed(_decPoints) +
+        "] " + XXX);
+    }
+  }
+}
+
+
+function WriteGraphic2() {
+  if (TPO != null) {
+    debugPrintln("Total range in ticks=" + TPO.length);
+    for (i = 0; i < TPO.length; i++) {
+      debugPrintln("TPO[" + i + "] Price[" +
+        Math.round((dayLow + i * _tickSize) / _tickSize) +
+        "] TPO count=" + TPO[i]);
+    }
+  }
+}
+
+
+var _bPendingAlerts = false;
+var _sPendingAlerts = new Array();
+
+function ShowPendingAlerts() {
+  if (_bPendingAlerts) {
+    var i;
+    for (i = 0; i < _sPendingAlerts.length; i++) {
+      Alert.addToList(getSymbol(), _sPendingAlerts[i], Color.white, Color.red);
+    }
+    _sPendingAlerts = new Array();
+    _bPendingAlerts = false;
+  }
+}
+
+function AppendAlert(alertString) {
+  debugPrintln(alertString);
+  _sPendingAlerts.push(alertString);
+  _bPendingAlerts = true;
+}
+
+var RFSoundFile = "rftool.wav";
+
+function AlertRF(PopupRFAlert, SoundRFAlert) {
+  if (PopupRFAlert == "true" || PopupRFAlert == true) {
+    var BackColor = (_rotationFactor < 0) ? Color.red : Color.lime;
+    var ForeColor = Color.black;
+    if (_rotationFactor == 0) {
+      BackColor = Color.blue;
+      ForeColor = Color.white;
+    }
+    Alert.addToList(getSymbol(), "Rotation Factor = " + _rotationFactor, ForeColor, BackColor);
+  }
+  if (SoundRFAlert == "true" || SoundRFAlert == true) {
+    Alert.playSound(RFSoundFile);
+  }
+}
+
+function RoundValue(valueToRound) {
+  return RoundNumber(valueToRound, _decPoints);
+}
+
+function getHigh(indexInto) {
+  return RoundNumber(high(indexInto), _decPoints);
+}
+
+function getLow(indexInto) {
+  return RoundNumber(low(indexInto), _decPoints);
+}
+
+function getClose(indexInto) {
+  return RoundNumber(close(indexInto), _decPoints);
+}
+
+function getOpen(indexInto) {
+  return RoundNumber(open(indexInto), _decPoints);
+}
+
+function RoundNumber(num, dec) {
+  var result = Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+  return result;
+}

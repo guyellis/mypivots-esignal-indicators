@@ -1,0 +1,129 @@
+
+function preMain() {
+
+    setPriceStudy(true);
+    setStudyTitle("ImpulsePaintBar");
+    setShowTitleParameters(false);
+    setColorPriceBars(true);
+    setDefaultPriceBarColor(Color.black);
+    setShowCursorLabel(false);
+    
+	var x=0; 
+	aFPArray[x] = new FunctionParameter("FastLen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+		setLowerLimit(1);
+        setName("Fast Length");
+		setDefault( 12 );
+	}  
+	x++; 
+	aFPArray[x] = new FunctionParameter("SlowLen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+		setLowerLimit(1);
+        setName("Slow Length");
+		setDefault(26);
+	}  
+	x++;
+	aFPArray[x] = new FunctionParameter("SmoothingLen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+		setLowerLimit(1);
+        setName("Smoothing Length");
+		setDefault(9);
+	}  
+	x++;
+	aFPArray[x] = new FunctionParameter("Source", FunctionParameter.STRING);
+	with( aFPArray[x] ) {
+        setName("Source");
+        addOption("Close");
+        addOption("High");
+        addOption("Low");
+        addOption("Open");
+        addOption("HL/2");
+        addOption("HLC/3");
+        addOption("OHLC/4");
+        setDefault("Close");
+    }
+	x++;
+	aFPArray[x] = new FunctionParameter("TypeOsc", FunctionParameter.BOOLEAN);
+	with( aFPArray[x] ) {
+        setName("SMA (MACD Oscillator)");
+        setDefault(false);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("TypeSig", FunctionParameter.BOOLEAN);
+	with( aFPArray[x] ) {
+        setName("SMA (Signal)");
+        setDefault(true);
+    }
+	x++;
+	aFPArray[x] = new FunctionParameter( "EMALen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+        setName("EMA (Inertia)");
+		setLowerLimit(1);
+		setDefault(13);
+	}  
+	x++;
+	aFPArray[x] = new FunctionParameter("NeutColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Neutral Color");
+        setDefault(Color.cyan);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("UpColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Up Color");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("DnColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Down Color");
+        setDefault(Color.red);
+	}
+	x++;
+	
+	_init = true;
+}
+
+var _init = true;
+
+var vMACD;
+var vEMA
+var aFPArray = new Array();
+
+function main(FastLen, SlowLen, SmoothingLen, Source, TypeOsc, TypeSig, EMALen, NeutColor, UpColor, DnColor) {
+
+    var x;
+	
+	//script is initializing
+    if ( getBarState() == BARSTATE_ALLBARS ) {
+        return null;
+    }
+
+	if (_init) {
+		vMACD = new MACDStudy(FastLen, SlowLen, SmoothingLen, Source, TypeOsc, TypeSig);
+		vEMA = new MAStudy(EMALen, 0, Source, MAStudy.EXPONENTIAL);
+
+        _init = false;
+	}
+
+    var nowValMACD = vMACD.getValue(MACDStudy.HIST, 0);
+    var preValMACD = vMACD.getValue(MACDStudy.HIST, -1);
+    
+    var nowValEMA = vEMA.getValue(MAStudy.MA, 0);
+    var preValEMA = vEMA.getValue(MAStudy.MA, -1);
+	
+    if(nowValMACD > preValMACD && nowValEMA > preValEMA)
+    {
+        setPriceBarColor(UpColor);
+    }
+    else if(nowValMACD < preValMACD && nowValEMA < preValEMA)
+    {
+        setPriceBarColor(DnColor);
+    }
+    else
+    {
+        setPriceBarColor(NeutColor);
+    }
+}
+
+

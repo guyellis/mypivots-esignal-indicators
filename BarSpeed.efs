@@ -1,0 +1,89 @@
+
+function preMain() {
+
+    setPriceStudy(false);
+    setStudyTitle("BarSpeed");
+    setShowTitleParameters(false);
+    setShowCursorLabel(true);
+    setCursorLabelName("Speed", 0);
+
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("CutOff", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(100);
+	}
+    aFPArray[x] = new FunctionParameter("Invert", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+	}
+    aFPArray[x] = new FunctionParameter("BarColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.cyan);
+	}
+    aFPArray[x] = new FunctionParameter("BarThick", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(2);
+        setLowerLimit(1);
+	}
+    aFPArray[x] = new FunctionParameter("FastSec", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(30);
+        setLowerLimit(1);
+	}
+    aFPArray[x] = new FunctionParameter("FastColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+	}
+
+	_init = true;
+}
+
+var _init = true;
+var aFPArray = new Array();
+
+var _startTime;
+var _timeTaken;
+var _today = 0;
+var _oneDay = 24 * 60 * 60;
+var _invert = true;
+
+function main(CutOff, Invert, BarColor, BarThick, FastSec, FastColor) {
+    if(_init)
+    {
+        _invert = (Invert == "true" || Invert == true) ? true : false;
+        setDefaultBarThickness(BarThick,0);
+        setDefaultBarFgColor(BarColor,0);
+        var newStartTime = getHour() * 60 * 60 + getMinute() * 60 + getSecond();
+        _timeTaken = 0;
+        _startTime = newStartTime;
+        _init = false;
+    }
+
+    if (getBarState() == BARSTATE_ALLBARS) {
+        return;
+    }
+
+    if (getBarState() == BARSTATE_NEWBAR) {
+        var thisDay = getDay();
+        var newStartTime = getHour() * 60 * 60 + getMinute() * 60 + getSecond();
+        if(_today != thisDay) {
+            _timeTaken = _oneDay + newStartTime - _startTime;
+            _today = thisDay;
+        } else {
+            _timeTaken = newStartTime - _startTime;
+        }
+        _startTime = newStartTime;
+
+        if(_timeTaken <= FastSec)
+            setDefaultBarFgColor(FastColor,0);
+        else
+            setDefaultBarFgColor(BarColor,0);
+
+        if(_timeTaken > CutOff) _timeTaken = CutOff;
+        if(_invert) _timeTaken = CutOff - _timeTaken;
+    }
+
+    return _timeTaken;
+}

@@ -1,0 +1,76 @@
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setPriceStudy(true);
+    setStudyTitle("AltYearColor");
+    setShowTitleParameters(false);
+    setColorPriceBars(true);
+    setDefaultPriceBarColor(Color.black);
+    setShowCursorLabel(false);
+
+    var x = 0;
+
+    aFPArray[x] = new FunctionParameter("Color1", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.yellow);
+    }
+    aFPArray[x] = new FunctionParameter("Color2", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.aqua);
+    }
+    aFPArray[x] = new FunctionParameter("Overnight", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+    }
+    aFPArray[x] = new FunctionParameter("OvernightColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.white);
+    }
+    aFPArray[x] = new FunctionParameter("StartTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("16:16");
+    }
+    aFPArray[x] = new FunctionParameter("EndTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("9:29");
+    }
+
+    _init = true;
+}
+
+var yearNum = 0;
+var flag = true;
+var currentColor = Color.aqua;
+var _init = true;
+
+function main(Color1, Color2, Overnight, OvernightColor, StartTime, EndTime) {
+
+    if( _init ) {
+        _init = false;
+    }
+
+    if ( getBarState() == BARSTATE_ALLBARS )
+    {
+        return null;
+    }
+
+    var currYear = getYear(0);
+
+    if(yearNum != currYear)
+    {
+        yearNum = currYear;
+        flag = !flag;
+        if(flag)
+        {
+            currentColor = Color2;
+        }
+        else
+        {
+            currentColor = Color1;
+        }
+    }
+
+	setPriceBarColor(currentColor);
+}

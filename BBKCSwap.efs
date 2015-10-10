@@ -1,0 +1,212 @@
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setPriceStudy(false);
+
+    setStudyTitle("BBKCSwap");
+    setShowTitleParameters(false);
+
+    setCursorLabelName("BKR", 0);
+	setDefaultBarThickness(1, 0);
+	setDefaultBarStyle(PS_DOT, 0);
+    setPlotType(PLOTTYPE_DOT,0);
+
+    setCursorLabelName("Mom", 1);
+	setDefaultBarStyle(PS_SOLID, 1);
+	setDefaultBarThickness(2, 1);
+    setPlotType(PLOTTYPE_HISTOGRAM, 1);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("BBLength", FunctionParameter.NUMBER);
+	with( aFPArray[x++] ) {
+		setDefault(20);
+	}
+    aFPArray[x] = new FunctionParameter("BBStdDev", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(2);
+	}
+    aFPArray[x] = new FunctionParameter("KCLength", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(20);
+	}
+    aFPArray[x] = new FunctionParameter("KeltnerATR", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(false);
+	}
+    aFPArray[x] = new FunctionParameter("MomLength", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(12);
+	}
+	aFPArray[x] = new FunctionParameter("MomSmoothLen", FunctionParameter.NUMBER);
+	with( aFPArray[x++] ) {
+		setLowerLimit(1);
+		setDefault(8);
+	}
+	aFPArray[x] = new FunctionParameter( "MomSmoothType", FunctionParameter.STRING);
+	with( aFPArray[x++] ) {
+		addOption("EMA");
+		addOption("WMA");
+		addOption("SMA");
+		setDefault("EMA");
+	}
+    aFPArray[x] = new FunctionParameter("Alert", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(0.11);
+	}
+    aFPArray[x] = new FunctionParameter("NonSqueezeColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lightgrey);
+	}
+    aFPArray[x] = new FunctionParameter("SqueezeColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+	}
+    aFPArray[x] = new FunctionParameter("MomentumColorPlusIncrease", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+	}
+    aFPArray[x] = new FunctionParameter("MomentumColorPlusDecrease", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.green);
+	}
+    aFPArray[x] = new FunctionParameter("MomentumColorMinusIncrease", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.fushcia);
+	}
+    aFPArray[x] = new FunctionParameter("MomentumColorMinusDecrease", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.red);
+	}
+
+	_init = true;
+}
+
+var _init = true;
+
+var BKR = null; // BKR is the Bollinger Band to Keltner Channel Ratio
+var sBB = null;
+var sATR = null;
+var sMOM = null;
+var _lastMomValue = 0;
+var nMOM = 0;
+var tagID = 0;
+
+function main(BBLength, BBStdDev, KCLength, KeltnerATR, MomLength, MomSmoothLen, MomSmoothType, Alert, NonSqueezeColor,
+SqueezeColor, MomentumColorPlusIncrease, MomentumColorPlusDecrease, MomentumColorMinusIncrease, MomentumColorMinusDecrease) {
+
+    if(_init) {
+        sBB = new BollingerStudy( BBLength, "close", BBStdDev );
+        if(KeltnerATR == true || KeltnerATR == "true") {
+            // The ATR is going to be used in place of the
+            // average range for the KC so use the same length
+            // as the KC
+            sATR = atr(KCLength);
+        }
+
+		_init = false;
+    }
+
+	if(getBarState() == BARSTATE_NEWBAR)
+	{
+        _lastMomValue = nMOM;
+        tagID++;
+	}
+
+    var bbUpper = sBB.getValue(BollingerStudy.UPPER, 0);
+    var bbLower = sBB.getValue(BollingerStudy.LOWER, 0);
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Calculate the Keltner value for the current bar.
+// The Keltner value is the simple average of the HLC values for
+// each bar in the specified number of bars (length). The upper
+// and lower bands are calculated by adding and subtracting the
+// simple average of the range for the same length.
+//
+// Variation possibilities: User EMA or WMA for averages instead of SMA
+//
+	var vHigh = getValue("High", 0, -KCLength);
+	var vLow = getValue("Low", 0, -KCLength);
+	var vClose = getValue("Close", 0, -KCLength);
+	if(vHigh == null || vLow == null || vClose == null) {
+		return;
+    }
+
+	var vHLC3 = 0;
+	var vHminL = 0;
+	var i;
+
+	for(i = 0; i < KCLength; i++) {
+		vHLC3 += (vHigh[i] + vLow[i] + vClose[i]) / 3;
+		vHminL += vHigh[i] - vLow[i];
+	}
+
+	vHLC3 /= KCLength;
+	vHminL /= KCLength;
+
+    if(KeltnerATR == true || KeltnerATR == "true") {
+        // If we're using the ATR on the Keltner then we should use
+        // the ATR from the HLC3 SMA to find the bands on either
+        // side
+        vHminL = sATR.getValue(0);
+    }
+
+	var kcUpper = vHLC3 + vHminL;
+    var kcLower = vHLC3 - vHminL;
+
+// We now have the upper and lower values for both the BB and KC.
+
+    var shapeColor = null;
+    var ratio = (bbUpper - bbLower) / ((kcUpper - kcLower)*10);
+    if(ratio < Alert) {
+        setBarFgColor(SqueezeColor, 0);
+        shapeColor = SqueezeColor;
+    }
+    else {
+        setBarFgColor(NonSqueezeColor, 0);
+        shapeColor = NonSqueezeColor;
+    }
+
+    nMOM = GetSmoothedMom(MomSmoothType, MomSmoothLen, MomLength);
+    if(nMOM > 0) {
+        if(nMOM > _lastMomValue) {
+            setBarFgColor(MomentumColorPlusIncrease, 1);
+        } else {
+            setBarFgColor(MomentumColorPlusDecrease, 1);
+        }
+    } else {
+        if(nMOM > _lastMomValue) {
+            setBarFgColor(MomentumColorMinusIncrease, 1);
+        } else {
+            setBarFgColor(MomentumColorMinusDecrease, 1);
+        }
+    }
+
+    drawShapeRelative(0, ratio, Shape.CIRCLE, null,
+        shapeColor, Shape.ONTOP, tagID);
+    return new Array(ratio, nMOM);
+}
+
+// Having custom functions for momentum allows us to smooth the momentum function
+// with the type of MA we want to smooth it with
+function GetSmoothedMom(MomSmoothType, MomSmoothLen, MomLength)
+{
+	var result = 0;
+	if(MomSmoothType == "EMA") {
+        result = ema(MomSmoothLen, efsInternal("customMom", MomLength));
+	}
+	else if(MomSmoothType == "WMA") {
+        result = wma(MomSmoothLen, efsInternal("customMom", MomLength));
+	}
+	else {
+        result = sma(MomSmoothLen, efsInternal("customMom", MomLength));
+	}
+	return result;
+}
+
+function customMom(MomLength)
+{
+    var retVal = close(0) - close(-MomLength);
+    return retVal;
+}

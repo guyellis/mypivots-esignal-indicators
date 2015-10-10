@@ -1,0 +1,187 @@
+
+function preMain()
+{
+}
+
+var study0 = new MAStudy(144, 0, "Close", MAStudy.SIMPLE);
+var study1 = new MAStudy(200, 0, "Close", MAStudy.SIMPLE);
+var study2 = new MAStudy(89, 0, "Close", MAStudy.SIMPLE);
+var study3 = new MAStudy(50, 0, "Close", MAStudy.SIMPLE);
+var study4 = new MAStudy(20, 0, "Close", MAStudy.SIMPLE);
+var study5 = new MAStudy(8, 0, "Close", MAStudy.SIMPLE);
+
+var vSMA;
+var mFactor = 0;
+
+function FT1()
+{
+    var vSMABase = study0.getValue(MAStudy.MA);
+    var vSMA1 = vSMABase - study1.getValue(MAStudy.MA);
+    vSMA1 += vSMABase - study2.getValue(MAStudy.MA);
+    vSMA1 += vSMABase - study3.getValue(MAStudy.MA);
+    vSMA1 += vSMABase - study4.getValue(MAStudy.MA);
+    vSMA1 += vSMABase - study5.getValue(MAStudy.MA);
+
+	if(getBarState() == BARSTATE_NEWBAR)
+    {
+        mFactor = 1000 / close();
+    }
+
+    vSMA = (-vSMA1 * mFactor);
+    return vSMA;
+}
+
+var lastSMAVal = 0;
+
+function FDeltaT()
+{
+	if(getBarState() == BARSTATE_NEWBAR)
+    {
+        lastSMAVal = vSMA;
+    }
+
+    FT1();
+    return (vSMA - lastSMAVal);
+}
+
+var bb = new BollingerStudy(20, "Close", 2.0);
+function FDDeltaT()
+{
+    var deltaVal = FDeltaT();
+
+    var vUpper = bb.getValue(BollingerStudy.UPPER);
+    var vLower = bb.getValue(BollingerStudy.LOWER);
+    var vMiddle = bb.getValue(BollingerStudy.BASIS);
+    var bandWidth = (vUpper - vLower) / vMiddle * 100;
+    var percentB = (close() - vLower) / (vUpper - vLower);
+
+    if(close() > vMiddle)
+        deltaVal += bandWidth;
+    else
+        deltaVal -= bandWidth;
+
+    if(close() < vLower)
+        deltaVal -= bandWidth / 2;
+
+    if(close() > vUpper)
+        deltaVal += bandWidth / 2;
+
+    return deltaVal;
+}
+
+function FREX(nInputLength, multiplier)
+{
+    if(nInputLength == null)
+        nInputLength = 14;
+
+    var nLength = nInputLength;
+    var vValue;
+    var vLastClose;
+    var vSumUp = 0.0;
+    var vSumDown = 0.0;
+    var i;
+    var vRS;
+    var v;
+
+    vValue = getValue("Close", 0, -(nLength+1), "$tick");
+
+    if(vValue == null)
+    {
+        debugPrintln("vValue is null");
+        return;
+    }
+
+    var cntr = 0;
+    vLastClose = vValue[nLength];
+
+    for(i = nLength-1; i>= 0; i--) {
+       v = vValue[i];
+       if(v > vLastClose) {
+            vSumUp += v - vLastClose;
+        } else if(v < vLastClose) {
+            vSumDown += vLastClose - v;
+        }
+        vLastClose = v;
+    }
+
+    vSumUp /= nLength;
+    vSumDown /= nLength;
+    vRS = 1 + (vSumUp / vSumDown);
+    var RSI = 100 - (100 / vRS);
+    RSI += FDeltaT() * multiplier;
+
+    if(RSI>100)
+        RSI = 100;
+    else if(RSI<0)
+        RSI = 0;
+
+    return (RSI);
+}
+
+function TAP(nADD, nTICK, nEPREM, nVOL, nDELTAT)
+{
+    var deltaADD = DeltaADD();
+    var pricePart = "High";
+    var vVol = volume() * nVOL;
+    if(deltaADD < 0)
+    {
+        pricePart = "Low";
+        vVol *= -1;
+    }
+
+    var vTICK = getValue(pricePart, 0, 1, "$tick") * nTICK;
+    var vEPREM = getValue(pricePart, 0, 1, "$eprem") * nEPREM;
+    var vDELTAT = FDeltaT() * nDELTAT;
+
+    var retValue = (deltaADD * nADD) + vTICK + vEPREM + vVol + vDELTAT;
+
+    return (retValue/1000);
+}
+
+var lastADD = 0;
+var vADD = 0;
+function DeltaADD()
+{
+	if(getBarState() == BARSTATE_NEWBAR)
+    {
+        lastADD = vADD;
+    }
+    vADD = getValue("Close", 0, 1, "$add");
+    return (vADD - lastADD);
+}
+
+var lastTICK = 0;
+var vTICK = 0;
+function DeltaTICK()
+{
+	if(getBarState() == BARSTATE_NEWBAR)
+    {
+        lastTICK = vTICK;
+    }
+    vTICK = getValue("Close", 0, 1, "$tick");
+    return (vTICK - lastTICK);
+}
+
+function GetRelativeTick(pricePart)
+{
+	if(getBarState() == BARSTATE_NEWBAR)
+    {
+        var tickHigh = getValue("High", 0, 1, "$tick");
+        var tickLow = getValue("Low", 0, 1, "$tick");
+        TickHighLow(14, tickLow, tickHigh);
+    }
+    var vTICK = getValue(pricePart, 0, 1, "$tick");
+}
+
+tickHighs = new Array();
+tickLows = new Array();
+function TickHighLow(pds, newLow, newHigh)
+{
+    var i;
+    for(i = pds - 1; i > 0; i--) {
+        tickLows[i] = tickLows[i - 1];
+        tickHighs[i] = tickHighs[i - 1];
+    }
+    tickLows[0] = newLow;
+    tickHighs[0] = newHigh;
+}

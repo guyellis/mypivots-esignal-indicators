@@ -1,0 +1,337 @@
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setPriceStudy(true);
+    setShowCursorLabel(false);
+    setComputeOnClose();
+    setShowTitleParameters(false);
+
+    var x = 0;
+    aFPArray[x] = new FunctionParameter( "name", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("Daily");
+        setName("Name");
+    }
+    aFPArray[x] = new FunctionParameter("pOpen", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(0);
+        setName("Open");
+    }
+    aFPArray[x] = new FunctionParameter("pHigh", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(0);
+        setName("High");
+    }
+    aFPArray[x] = new FunctionParameter("pLow", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(0);
+        setName("Low");
+    }
+    aFPArray[x] = new FunctionParameter("pClose", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(0);
+        setName("Close");
+    }
+    aFPArray[x] = new FunctionParameter( "Values", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(false);
+        setName("Show Values");
+    }
+    aFPArray[x] = new FunctionParameter( "Labels", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+        setName("Show Labels");
+    }
+    aFPArray[x] = new FunctionParameter( "sLabelPos", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("Left");
+        addOption("Right");
+        setDefault("Left");
+        setName("Label Position");
+    }
+    aFPArray[x] = new FunctionParameter( "MidPoints", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(false);
+        setName("Show MidPoints");
+    }
+    aFPArray[x] = new FunctionParameter( "PivotFormula", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("(H+L+C)/3");
+        addOption("(H+L+O)/3");
+        addOption("(H+L+C+O)/4");
+        addOption("(H+L+C+C)/4");
+        addOption("(H+L+O+O)/4");
+        addOption("(H+L)/2");
+        addOption("(H+C)/2");
+        addOption("(L+C)/2");
+        setDefault("(H+L+C)/3");
+        setName("Pivot Formula");
+    }
+    aFPArray[x] = new FunctionParameter( "CalcType", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("Classic");
+        addOption("Woodie");
+        addOption("Camarilla");
+        addOption("DeMark");
+        setDefault("Classic");
+        setName("Calculation Type");
+    }
+    aFPArray[x] = new FunctionParameter("thickM", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(1);
+        setName("MidPoint Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "styleM", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DOT" );
+        setName("MidPoint Style");
+    }
+    aFPArray[x] = new FunctionParameter("colR", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.green);
+        setName("Resistance Color");
+    }
+    aFPArray[x] = new FunctionParameter("thickR", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Resistance Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "styleR", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+        setName("Resistance Style");
+    }
+    aFPArray[x] = new FunctionParameter("colP", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.blue);
+        setName("Pivot Color");
+    }
+    aFPArray[x] = new FunctionParameter("thickP", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Pivot Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "styleP", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+        setName("Pivot Style");
+    }
+    aFPArray[x] = new FunctionParameter("colS", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.red);
+        setName("Support Color");
+    }
+    aFPArray[x] = new FunctionParameter("thickS", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Support Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "styleS", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+        setName("Support Style");
+    }
+
+    _init = true;
+}
+
+var _init = true;
+
+function main(name,
+pOpen, pHigh, pLow, pClose,
+Values, Labels, sLabelPos,
+MidPoints, PivotFormula, CalcType,
+thickM, styleM,
+colR, thickR, styleR,
+colP, thickP, styleP,
+colS, thickS, styleS
+) {
+
+    if ( getBarState() == BARSTATE_ALLBARS ) {
+        return null;
+    }
+    if(_init)
+    {
+        var pivot = 0;
+        // calculate pivot
+        switch(PivotFormula)
+        {
+            case "(H+L+C)/3":
+                pivot = (pHigh + pLow + pClose) / 3;
+                break;
+            case "(H+L+O)/3":
+                pivot = (pHigh + pLow + pOpen) / 3;
+                break;
+            case "(H+L+C+O)/4":
+                pivot = (pHigh + pLow + pClose + pOpen) / 4;
+                break;
+            case "(H+L+C+C)/4":
+                pivot = (pHigh + pLow + pClose + pClose) / 4;
+                break;
+            case "(H+L+O+O)/4":
+                pivot = (pHigh + pLow + pOpen + pOpen) / 4;
+                break;
+            case "(H+L)/2":
+                pivot = (pHigh + pLow) / 2;
+                break;
+            case "(H+C)/2":
+                pivot = (pHigh + pClose) / 2;
+                break;
+            case "(L+C)/2":
+                pivot = (pLow + pClose) / 2;
+                break;
+            case "(H+L+C)/3":
+                pivot = (pHigh + pLow + pClose) / 3;
+                break;
+            default:
+                pivot = (pOpen + pLow + pClose) / 3;
+                break;
+        }
+
+        var i = 0; // unique band tagName - allows the replacing of bands if parameters change
+
+        // TODO: If parameters change do we need to iterate through all the bands and remove all of them first?
+
+        var range = pHigh - pLow;
+        var r1, r2, r3, r4, s1, s2, s3, s4;
+
+        if(CalcType == "Classic") {
+            setStudyTitle("Pivot Tool (Classic)");
+            r1 = 2 * pivot - pLow;
+            r2 = pivot + range;
+            r3 = pivot + range * 2;
+            r4 = pivot + range * 3;
+            s1 = 2 * pivot - pHigh;
+            s2 = pivot - range;
+            s3 = pivot - range * 2;
+            s4 = pivot - range * 3;
+        } else if(CalcType == "Woodie") {
+            setStudyTitle("Pivot Tool (Woodie)");
+            r1 = 2 * pivot - pLow;
+            r2 = pivot + range;
+            r3 = pHigh + 2 * (pivot -pLow);
+            r4 = pivot + range * 3;
+            s1 = 2 * pivot - pHigh;
+            s2 = pivot - range;
+            s3 = pLow - 2 * (pHigh - pivot);
+            s4 = pivot - range * 3;
+        } else if(CalcType == "Camarilla") {
+            setStudyTitle("Pivot Tool (Camarilla)");
+            r1 = pClose + range * 1.1/12;
+            r2 = pClose + range * 1.1/6;
+            r3 = pClose + range * 1.1/4;
+            r4 = pClose + range * 1.1/2;
+            s1 = pClose - range * 1.1/12;
+            s2 = pClose - range * 1.1/6;
+            s3 = pClose - range * 1.1/4;
+            s4 = pClose - range * 1.1/2;
+        } else if(CalcType == "DeMark") {
+            setStudyTitle("Pivot Tool (DeMark)");
+            var X;
+            if(pClose < pOpen) {
+                X = pHigh + (pLow * 2) + pClose;
+            } else if(pClose > pOpen) {
+                X = (pHigh * 2) + pLow + pClose;
+            } else {
+                X = pHigh + pLow + (pClose * 2);
+            }
+            r1 = X / 2 - pLow;
+            s1 = X / 2 - pHigh;
+        } else {
+            setStudyTitle("Pivot Tool (Unknown)");
+            debugPrintln("Houston - we have a problem!");
+        }
+
+        // draw pivot line
+        if(CalcType != "DeMark") { // DeMark does not have a pivot point
+            DrawLine(pivot, styleP, thickP, colP, ++i, Labels, name, Values, sLabelPos, "PP");
+        }
+
+        // calculate and draw R1, R2, R3, R4
+        DrawLine(r1, styleR, thickR, colR, ++i, Labels, name, Values, sLabelPos, "R1");
+        if(CalcType != "DeMark") {
+            DrawLine(r2, styleR, thickR, colR, ++i, Labels, name, Values, sLabelPos, "R2");
+            DrawLine(r3, styleR, thickR, colR, ++i, Labels, name, Values, sLabelPos, "R3");
+            DrawLine(r4, styleR, thickR, colR, ++i, Labels, name, Values, sLabelPos, "R4");
+        }
+        // calculate and draw S1, S2, S3, S4
+        DrawLine(s1, styleS, thickS, colS, ++i, Labels, name, Values, sLabelPos, "S1");
+        if(CalcType != "DeMark") {
+            DrawLine(s2, styleS, thickS, colS, ++i, Labels, name, Values, sLabelPos, "S2");
+            DrawLine(s3, styleS, thickS, colS, ++i, Labels, name, Values, sLabelPos, "S3");
+            DrawLine(s4, styleS, thickS, colS, ++i, Labels, name, Values, sLabelPos, "S4");
+        }
+        if(CalcType != "DeMark") {
+            if(MidPoints == "true" || MidPoints == true) {
+                DrawLine((pivot+s1)/2, styleM, thickM, colS, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((s1+s2)/2, styleM, thickM, colS, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((s3+s2)/2, styleM, thickM, colS, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((s3+s4)/2, styleM, thickM, colS, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((pivot+r1)/2, styleM, thickM, colR, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((r1+r2)/2, styleM, thickM, colR, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((r3+r2)/2, styleM, thickM, colR, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+                DrawLine((r3+r4)/2, styleM, thickM, colR, ++i, Labels, name, Values, sLabelPos, "MidPoint");
+            }
+        }
+        _init = false;
+    }
+}
+
+function DrawLine(vValue, style, thick, col, tagID, Labels,
+name, Values, sLabelPos, txtName)
+{
+    addBand(vValue, eval(eval(style)), eval(thick), eval(col), tagID);
+    addLabel(Labels, name, vValue, Values, sLabelPos, txtName, tagID);
+}
+
+function addLabel(Labels, Name, vValue, Values, sLabelPos, txtName, tagID)
+{
+    if (Labels == "true" || Labels == true)
+    {
+        var sTextFlags, nTextX;
+
+        if (sLabelPos == "Right") {
+            sTextFlags = "Text.LEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 2;
+        } else {
+            sTextFlags = "Text.RELATIVETOLEFT|Text.ONTOP|Text.VCENTER|Text.Bold|Text.FRAME";
+            nTextX = 0;
+        }
+        var txtLabel = Name + " " + txtName;
+        if(Values == "true" || Values == true) {
+            txtLabel += " " + formatPriceNumber(parseFloat(vValue)) + " ";
+        }
+        drawTextAbsolute(nTextX, vValue, txtLabel,
+            Color.white, Color.blue, eval(sTextFlags), null, 10, txtName + tagID);
+    }
+}

@@ -1,0 +1,175 @@
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setPriceStudy(true);
+    setStudyTitle("PBTool");
+    setShowCursorLabel(false);
+    setShowTitleParameters(false);
+
+    var x = 0;
+    
+    // Parameters about the start and end times
+    aFPArray[x] = new FunctionParameter( "StartTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("9:30");
+    }
+    aFPArray[x] = new FunctionParameter( "EndTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("16:15");
+    }
+    aFPArray[x] = new FunctionParameter( "PBType", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("Fixed");
+        addOption("%ofRange");
+        setDefault("Fixed");
+    }
+    aFPArray[x] = new FunctionParameter( "PullBack", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(2.5);
+    }
+    aFPArray[x] = new FunctionParameter( "colorUpper", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+    }
+    aFPArray[x] = new FunctionParameter( "thickUpper", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(1);
+    }
+    aFPArray[x] = new FunctionParameter( "styleUpper", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DOT" );
+    }
+    aFPArray[x] = new FunctionParameter( "plotTypeUpper", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PLOTTYPE_LINE");
+        addOption("PLOTTYPE_DOT");
+        addOption("PLOTTYPE_SQUAREWAVE");
+        addOption("PLOTTYPE_HISTOGRAM");
+        addOption("PLOTTYPE_FLATLINES");
+        addOption("PLOTTYPE_INSTANTCOLORLINE");
+        setDefault("PLOTTYPE_FLATLINES" );
+    }
+    aFPArray[x] = new FunctionParameter( "colorLower", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.red);
+    }
+    aFPArray[x] = new FunctionParameter( "thickLower", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(1);
+    }
+    aFPArray[x] = new FunctionParameter( "styleLower", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DOT" );
+    }
+    aFPArray[x] = new FunctionParameter( "plotTypeLower", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PLOTTYPE_LINE");
+        addOption("PLOTTYPE_DOT");
+        addOption("PLOTTYPE_SQUAREWAVE");
+        addOption("PLOTTYPE_HISTOGRAM");
+        addOption("PLOTTYPE_FLATLINES");
+        addOption("PLOTTYPE_INSTANTCOLORLINE");
+        setDefault("PLOTTYPE_FLATLINES" );
+    }
+
+    _init = true;
+}
+
+var _init = true;
+
+function main(StartTime, EndTime, PBType, PullBack,
+colorUpper, thickUpper, styleUpper, plotTypeUpper, 
+colorLower, thickLower, styleLower, plotTypeLower) {
+
+    if(_init)
+    {
+        var timeString = StartTime.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        startMinute = hour * 60 + minute * 1;
+        
+        timeString = EndTime.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        endMinute = hour * 60 + minute * 1;
+        
+        _PB = PullBack;
+
+        setDefaultBarStyle(eval(styleUpper), 0);
+        setDefaultBarFgColor(colorUpper, 0);
+        setDefaultBarThickness(thickUpper, 0);
+        setPlotType(eval(plotTypeUpper), 0);
+
+        setDefaultBarStyle(eval(styleLower), 1);
+        setDefaultBarFgColor(colorLower, 1);
+        setDefaultBarThickness(thickLower, 1);
+        setPlotType(eval(plotTypeLower), 1);
+
+        _init = false;
+    }
+    
+    if(_currentDay != getDay(0)) {
+        _high = _low = null;
+        _currentDay = getDay(0);
+    }
+
+    var timeNow = getHour(0) * 60 + getMinute(0);
+    if(timeNow >= startMinute && timeNow < endMinute) {
+        if(_high == null || _low == null) {
+            _high = high(0);
+            _low = low(0);
+            SetPB(PBType);
+        }
+        
+        if(_high < high(0)) {
+            _high = high(0);
+            SetPB(PBType);
+        }
+        if(_low > low(0)) {
+            _low = low(0);
+            SetPB(PBType);
+        }
+    } else {
+        _high = _low = null;
+        SetPB(PBType);
+    }
+    
+    return _pullBacks;
+}
+function SetPB(PBType, PullBack) {
+    var pullBack = _PB;
+    if(PBType == "%ofRange") {
+        var range = _high - _low;
+        pullBack = (_PB * range) / 100;
+    }
+    _pullBacks = new Array(_high - pullBack, _low + pullBack);
+}
+
+var _pullBacks = null;
+
+var _currentDay = 0;
+
+var startMinute = null;
+var endMinute = null;
+
+var _high = null;
+var _low = null;
+
+var _PB;
+

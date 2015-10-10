@@ -1,0 +1,130 @@
+/*
+
+Purpose: To measure the speed at which the an indicator is changing
+and show this as a figure. This is to prevent the user from taking an indicator's
+signal too early.
+
+*/
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+
+    setStudyTitle("DeltaT");
+    setShowTitleParameters(false);
+
+    setDefaultBarFgColor(Color.blue,0);
+    setDefaultBarFgColor(Color.blue,1);
+    
+    addBand(0, PS_SOLID, 1, Color.white, 0);
+
+    setCursorLabelName("DeltaT",0);
+    
+    var x=0;
+    aFPArray[x] = new FunctionParameter("level1", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Buy/Sell Low Value");
+        setDefault(.5);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("PlusColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("+ Color");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("NegColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("- Color");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("SellColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Sell Color");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("BuyColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Buy Color");
+        setDefault(Color.lime);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("barThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Bar Thickness");
+        setDefault(3);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("popAlert", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setName("Popup Alert");
+        setDefault(true);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("makeSound", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setName("Sound Alert");
+        setDefault(true);
+	}
+	x++;
+	
+	_init = true;
+}
+
+var _init = true;
+var deltaVal = 0;
+var alertSound = "laser.wav";
+
+function main(level1, PlusColor, NegColor, SellColor, BuyColor, barThick, popAlert, makeSound) {
+
+    if(_init) {
+        setDefaultBarThickness(barThick, 0);
+        _init = false;
+    }
+    
+
+	if(getBarState() == BARSTATE_NEWBAR) 
+    {
+        if(deltaVal < -level1)
+        {
+            if(popAlert == "true" || popAlert == true)
+                Alert.addToList(getSymbol(), "DeltaT Buy Signal", Color.black, Color.lime);
+            if(makeSound == "true" || makeSound == true)
+                Alert.playSound(alertSound);
+        }
+        if(deltaVal > level1)
+        {
+            if(popAlert == "true" || popAlert == true)
+                Alert.addToList(getSymbol(), "DeltaT Sell Signal", Color.black, Color.red);
+            if(makeSound == "true" || makeSound == true)
+                Alert.playSound(alertSound);
+        }
+	}
+
+    deltaVal = callFunction("DeltaT1.efs", "FDeltaT");
+
+    if(deltaVal > level1)
+    {
+        setDefaultBarFgColor(SellColor,0);
+    }
+    else if(deltaVal < -level1)
+    {
+        setDefaultBarFgColor(BuyColor,0);
+    }
+    else if(deltaVal > 0)
+    {
+        setDefaultBarFgColor(PlusColor,0);
+    }
+    else
+    {
+        setDefaultBarFgColor(NegColor,0);
+    }
+
+    return deltaVal;
+}
+
+

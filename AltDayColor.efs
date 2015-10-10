@@ -1,0 +1,93 @@
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setPriceStudy(true);
+    setStudyTitle("AltDayColor");
+    setShowTitleParameters(false);
+    setColorPriceBars(true);
+    setDefaultPriceBarColor(Color.black);
+    setShowCursorLabel(false);
+
+    var x = 0;
+
+    aFPArray[x] = new FunctionParameter("Color1", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.yellow);
+    }
+    aFPArray[x] = new FunctionParameter("Color2", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.aqua);
+    }
+    aFPArray[x] = new FunctionParameter("Overnight", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(true);
+    }
+    aFPArray[x] = new FunctionParameter("OvernightColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.white);
+    }
+    aFPArray[x] = new FunctionParameter("StartTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("16:16");
+    }
+    aFPArray[x] = new FunctionParameter("EndTime", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("9:29");
+    }
+
+    _init = true;
+}
+
+var dayNum = 0;
+var flag = true;
+var currentColor = Color.aqua;
+var _init = true;
+var startMinute, endMinute;
+
+function main(Color1, Color2, Overnight, OvernightColor, StartTime, EndTime) {
+
+    if( _init ) {
+        var timeString = StartTime.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        startMinute = hour * 60 + minute * 1;
+
+        timeString = EndTime.split(":");
+        var hour = timeString[0];
+        var minute = timeString[1];
+        endMinute = hour * 60 + minute * 1;
+
+        _init = false;
+    }
+
+    if ( getBarState() == BARSTATE_ALLBARS )
+    {
+        return null;
+    }
+
+    var today = getDay(0);
+
+    if(dayNum != today)
+    {
+        dayNum = today;
+        flag = !flag;
+        if(flag)
+        {
+            currentColor = Color2;
+        }
+        else
+        {
+            currentColor = Color1;
+        }
+    }
+
+    var nowMinute = getHour(0) * 60 + getMinute(0);
+
+    if(nowMinute >= startMinute || nowMinute < endMinute) {
+        setPriceBarColor(OvernightColor);
+    } else {
+        setPriceBarColor(currentColor);
+    }
+}

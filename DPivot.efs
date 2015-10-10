@@ -1,0 +1,344 @@
+
+var aFPArray = new Array();
+var _init = true;
+var _currentDay = 0;
+var _opens, _highs, _lows;
+var pivots;
+var curOp, curHi, curLo;
+var DayOfWeek;
+var lineNames;
+
+function preMain() {
+
+    setPriceStudy(true);
+    setShowCursorLabel(true);
+    setComputeOnClose(true);
+    setShowTitleParameters(false);
+
+    var x = 0;
+    aFPArray[x] = new FunctionParameter( "Name", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        setDefault("Daily Pivots");
+    }
+    aFPArray[x] = new FunctionParameter("NumDays", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setDefault(1);
+        setLowerLimit(1);
+    }
+    aFPArray[x] = new FunctionParameter( "MidPoints", FunctionParameter.BOOLEAN);
+    with( aFPArray[x++] ) {
+        setDefault(false);
+        setName("Show MidPoints");
+    }
+    aFPArray[x] = new FunctionParameter( "PivotFormula", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("(H+L+C)/3");
+        addOption("(H+L+O)/3");
+        addOption("(H+L+C+O)/4");
+        addOption("(H+L+C+C)/4");
+        addOption("(H+L+O+O)/4");
+        addOption("(H+L)/2");
+        addOption("(H+C)/2");
+        addOption("(L+C)/2");
+        setDefault("(H+L+C)/3");
+        setName("Pivot Formula");
+    }    
+    aFPArray[x] = new FunctionParameter( "CalcType", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("Classic");
+        addOption("Woodie");
+        addOption("Camarilla");
+        addOption("DeMark");
+        setDefault("Classic");
+        setName("Calculation Type");
+    }    
+    aFPArray[x] = new FunctionParameter("rColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.red);
+        setName("Resistance Color");
+    }
+    aFPArray[x] = new FunctionParameter("rThick", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Resistance Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "rStyle", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+        setName("Resistance Style");
+    }
+    aFPArray[x] = new FunctionParameter("pColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.blue);
+        setName("Pivot Color");
+    }
+    aFPArray[x] = new FunctionParameter("pThick", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Pivot Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "pStyle", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+        setName("Pivot Style");
+    }
+    aFPArray[x] = new FunctionParameter("sColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.lime);
+        setName("Support Color");
+    }
+    aFPArray[x] = new FunctionParameter("sThick", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(2);
+        setName("Support Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "sStyle", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DASH" );
+        setName("Support Style");
+    }
+    aFPArray[x] = new FunctionParameter("mColor", FunctionParameter.COLOR);
+    with( aFPArray[x++] ) {
+        setDefault(Color.fushcia);
+        setName("MidPoint Color");
+    }
+    aFPArray[x] = new FunctionParameter("mThick", FunctionParameter.NUMBER);
+    with( aFPArray[x++] ) {
+        setLowerLimit( 0 );
+        setUpperLimit( 20 );
+        setDefault(1);
+        setName("MidPoint Thickness");
+    }
+    aFPArray[x] = new FunctionParameter( "mStyle", FunctionParameter.STRING);
+    with( aFPArray[x++] ) {
+        addOption("PS_SOLID");
+        addOption("PS_DOT");
+        addOption("PS_DASH");
+        addOption("PS_DASHDOT");
+        addOption("PS_DASHDOTDOT");
+        setDefault( "PS_DOT" );
+        setName("MidPoint Style");
+    }
+
+    _init = true;
+}
+
+
+function main(
+Name, NumDays,
+MidPoints, PivotFormula, CalcType, 
+rColor, rThick, rStyle,
+pColor, pThick, pStyle,
+sColor, sThick, sStyle,
+mColor, mThick, mStyle
+) {
+
+    if ( getBarState() == BARSTATE_ALLBARS ) {
+        return null;
+    }
+    
+	//script only works in intraday time frames
+	if ( isDaily() || isWeekly() || isMonthly() ) { return; }
+
+    if(_init)
+    {
+        if(CalcType == "DeMark") {
+            lineNames = new Array("R1", "X", "S1");
+        } else {
+            lineNames = new Array("R4", "R3", "R2", "R1", "PP", "S1", "S2", "S3", "S4");
+        }
+        
+        setStudyTitle(Name + " (" + NumDays + " day(s)) (" + CalcType + ")");
+        _highs = new Array(NumDays);
+        _lows = new Array(NumDays);
+        _opens = new Array(NumDays);
+        
+        // Clever little bit of wizardry below has 2 counters. The counters will
+        // be the same unless MidPoints is checked on. In that case one of the
+        // counters will keep a total iteration count while the other will work
+        // through the list of pivots.
+        var cName, cStyle, cThick, cColor;
+        var i=0;
+        var iCursor = 0;
+        while(i < lineNames.length) {
+            if((MidPoints == "true" || MidPoints == true) && (iCursor % 2 == 1)){
+                cName = lineNames[i-1] + "+" + lineNames[i];
+                cStyle = mStyle;
+                cThick = mThick;
+                cColor = mColor;
+            } else {
+                cName = lineNames[i];
+                if(i < 4) {
+                    cStyle = rStyle;
+                    cThick = rThick;
+                    cColor = rColor;
+                } else if (i > 4) {
+                    cStyle = sStyle;
+                    cThick = sThick;
+                    cColor = sColor;
+                } else {
+                    cStyle = pStyle;
+                    cThick = pThick;
+                    cColor = pColor;
+                }
+                i++;
+            }
+            setCursorLabelName(cName, iCursor);
+            setDefaultBarStyle(eval(eval(cStyle)), iCursor);
+            setDefaultBarThickness(cThick, iCursor);
+            setDefaultBarFgColor(cColor, iCursor);
+            iCursor++;
+        }
+
+        _init = false;
+    }
+    if(_currentDay != getDay(0)) {
+        _opens.unshift(curOp);
+        _highs.unshift(curHi);
+        _lows.unshift(curLo);
+        _opens.pop();
+        _highs.pop();
+        _lows.pop();
+        curOp = open(0);
+        curHi = high(0);
+        curLo = low(0);
+        
+        var tHigh = _highs[0];
+        var tLow  = _lows[0];
+        var tOpen = _opens[0];
+        for(i=1; i<_highs.length; i++) {
+            tHigh = Math.max(_highs[i], tHigh);
+            tLow  = Math.min(_lows[i], tLow);
+            tOpen = _opens[i];
+        }
+        pivots = GetPivots(tOpen, tHigh, tLow, close(-1), PivotFormula, CalcType, MidPoints);
+        _currentDay = getDay(0);
+    }
+    
+    curHi = Math.max(curHi, high(0));
+    curLo = Math.min(curLo, low(0));
+    return pivots;
+}
+
+function GetPivots(pOpen, pHigh, pLow, pClose, PivotFormula, CalcType, MidPoints) {
+        var pivot = 0;
+        // calculate pivot
+        switch(PivotFormula)
+        {
+            case "(H+L+C)/3":
+                pivot = (pHigh + pLow + pClose) / 3;
+                break;
+            case "(H+L+O)/3":
+                pivot = (pHigh + pLow + pOpen) / 3;
+                break;
+            case "(H+L+C+O)/4":
+                pivot = (pHigh + pLow + pClose + pOpen) / 4;
+                break;
+            case "(H+L+C+C)/4":
+                pivot = (pHigh + pLow + pClose + pClose) / 4;
+                break;
+            case "(H+L+O+O)/4":
+                pivot = (pHigh + pLow + pOpen + pOpen) / 4;
+                break;
+            case "(H+L)/2":
+                pivot = (pHigh + pLow) / 2;
+                break;
+            case "(H+C)/2":
+                pivot = (pHigh + pClose) / 2;
+                break;
+            case "(L+C)/2":
+                pivot = (pLow + pClose) / 2;
+                break;
+            case "(H+L+C)/3":
+                pivot = (pHigh + pLow + pClose) / 3;
+                break;
+            default:
+                pivot = (pOpen + pLow + pClose) / 3;
+                break;
+        }
+
+        var range = pHigh - pLow;
+
+        var r1, r2, r3, r4, s1, s2, s3, s4;
+
+        if(CalcType == "Classic") {
+            r1 = 2 * pivot - pLow;
+            r2 = pivot + range;
+            r3 = pivot + range * 2;
+            r4 = pivot + range * 3;
+            s1 = 2 * pivot - pHigh;
+            s2 = pivot - range;
+            s3 = pivot - range * 2;
+            s4 = pivot - range * 3;
+        } else if(CalcType == "Woodie") {
+            r1 = 2 * pivot - pLow;
+            r2 = pivot + range;
+            r3 = pHigh + 2 * (pivot -pLow);
+            r4 = pivot + range * 3;
+            s1 = 2 * pivot - pHigh;
+            s2 = pivot - range;
+            s3 = pLow - 2 * (pHigh - pivot);
+            s4 = pivot - range * 3;
+        } else if(CalcType == "Camarilla") {
+            r1 = pClose + range * 1.1/12;
+            r2 = pClose + range * 1.1/6;
+            r3 = pClose + range * 1.1/4;
+            r4 = pClose + range * 1.1/2;
+            s1 = pClose - range * 1.1/12;
+            s2 = pClose - range * 1.1/6;
+            s3 = pClose - range * 1.1/4;
+            s4 = pClose - range * 1.1/2;
+        } else if(CalcType == "DeMark") {
+            var X;
+            if(pClose < pOpen) {
+                X = pHigh + (pLow * 2) + pClose;
+            } else if(pClose > pOpen) {
+                X = (pHigh * 2) + pLow + pClose;
+            } else {
+                X = pHigh + pLow + (pClose * 2);
+            }
+            r1 = X / 2 - pLow;
+            s1 = X / 2 - pHigh;
+        } else {
+            setStudyTitle("Pivot Tool (Unknown)");
+            debugPrintln("Houston - we have a problem!");
+        }
+        
+        if(MidPoints == "true" || MidPoints == true) {
+            if(CalcType == "DeMark") {
+                return new Array(r1, (r1+pivot)/2, pivot, (pivot+s1)/2, s1);
+            } else {
+                return new Array(r4, (r4+r3)/2, r3, (r3+r2)/2, r2, 
+                    (r2+r1)/2, r1, (r1+pivot)/2, pivot, (pivot+s1)/2, 
+                    s1, (s1+s2)/2, s2, (s2+s3)/2, s3, (s3+s4)/2, s4);
+            }
+        } else {
+            if(CalcType == "DeMark") {
+                return new Array(r1, pivot, s1);
+            } else {
+                return new Array(r4, r3, r2, r1, pivot, s1, s2, s3, s4);
+            }
+        }
+}
+

@@ -1,0 +1,166 @@
+
+var aFPArray = new Array();
+
+function preMain() {
+
+    setShowTitleParameters(false);
+
+    setPriceStudy(true);
+    setStudyTitle("SafeZone");
+    setCursorLabelName("Stop", 0);
+    setShowCursorLabel(true);
+    
+	var x=0; 
+	aFPArray[x] = new FunctionParameter( "lookback", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+        setName("Lookback period");
+		setLowerLimit(1);
+		setDefault(13);
+	}  
+	x++; 
+	aFPArray[x] = new FunctionParameter( "coef", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+        setName("Coefficient/multiplication factor");
+		setLowerLimit(0);
+		setDefault(2);
+	}  
+	x++;
+    aFPArray[x] = new FunctionParameter("LineThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Line Thickness");
+        setDefault(1);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("LineColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Line Color");
+        setDefault(Color.blue);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("LongStop", FunctionParameter.BOOLEAN);
+	with( aFPArray[x] ) {
+        setName("Long Stop");
+        setDefault(true);
+	}
+	x++;
+	
+    _init = true;
+}
+
+var _init = true;
+var pen;
+var stop, prevStop;
+
+function main(lookback, coef, LineThick, LineColor, LongStop) {
+
+    if(LongStop == "false") LongStop = false;
+    if(LongStop == "true") LongStop = true;
+    if(_init)
+    {
+        _init = false;
+        pen = new Array(lookback);
+        var i;
+        for(i=0; i<lookback; i++)
+            pen[i] = 0;
+            
+        if(LongStop) {
+            stop = low(0);
+            setCursorLabelName("Long Stop", 0);
+            setStudyTitle("SafeZone Long Stop");
+        }
+        else {
+            stop = high(0);
+            setCursorLabelName("Short Stop", 0);
+            setStudyTitle("SafeZone Short Stop");
+        }
+        setDefaultBarThickness(LineThick, 0);
+        setDefaultBarFgColor(LineColor, 0);
+    }
+
+	if ( getBarState() == BARSTATE_NEWBAR ) 
+    {
+        
+        if(LongStop) {
+            var dd;
+            var l1 = low(-1);
+            var l2 = low(-2);
+            if(l1 == null)
+                l1 = low();
+            if(l2 == null)
+                l2 = low();
+            if(l1 < l2)
+                dd = l2 - l1;
+            else
+                dd = 0;
+                
+            pen.pop();
+            pen.unshift(dd);
+        }
+        else {
+            var uu;
+            if(high(-1) > high(-2))
+                uu = high(-1) - high(-2);
+            else
+                uu = 0;
+                
+            pen.pop();
+            pen.unshift(uu);
+        }
+        var x;
+        var sum = 0;
+        var PenCount = 0;
+        for(x=0; x<lookback; x++)
+        {
+            if(pen[x] != 0) {
+                sum += pen[x];
+                PenCount++;
+            }
+        }
+        
+        var avg;
+        if(PenCount == 0)
+            avg = 0;
+        else
+            avg = sum / PenCount;
+        
+        prevStop = stop;
+        if(LongStop)
+            stop = low(-1) - avg * coef;
+        else
+            stop = high(-1) + avg * coef;
+        
+        if(LongStop) {
+            if(low() < stop || low(-1) <= prevStop)
+            {
+                // use new LongStop because the stop has
+                // been hit and we can reset down
+                
+            }
+            else
+            {
+                // don't allow a lower stop to be used.
+                // this ratchets it up only
+                if(stop < prevStop)
+                    stop = prevStop;
+            }
+        }
+        else {        
+            if(high() > stop || high(-1) >= prevStop)
+            {
+                // use new LongStop because the stop has
+                // been hit and we can reset down
+                
+            }
+            else
+            {
+                // don't allow a lower stop to be used.
+                // this ratchets it up only
+                if(stop > prevStop)
+                    stop = prevStop;
+            }
+        }
+	}
+    
+    return stop;
+}
+

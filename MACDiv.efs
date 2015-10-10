@@ -1,0 +1,193 @@
+
+function preMain() {
+
+    setPriceStudy(false);
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+    setDefaultBarThickness(3,0);
+    setStudyTitle("MACDiv");
+    setCursorLabelName("MACDHist");
+    setShowCursorLabel(true);
+
+    setShowTitleParameters(false);
+
+	var x=0;
+	aFPArray[x] = new FunctionParameter("FastLen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+		setLowerLimit(1);
+        setName("Fast Length");
+		setDefault( 12 );
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("SlowLen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+		setLowerLimit(1);
+        setName("Slow Length");
+		setDefault(26);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("SmoothingLen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+		setLowerLimit(1);
+        setName("Smoothing Length");
+		setDefault(9);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("Source", FunctionParameter.STRING);
+	with( aFPArray[x] ) {
+        setName("Source");
+        addOption("Close");
+        addOption("High");
+        addOption("Low");
+        addOption("Open");
+        addOption("HL/2");
+        addOption("HLC/3");
+        addOption("OHLC/4");
+        setDefault("Close");
+    }
+	x++;
+	aFPArray[x] = new FunctionParameter("TypeOsc", FunctionParameter.BOOLEAN);
+	with( aFPArray[x] ) {
+        setName("SMA (MACD Oscillator)");
+        setDefault(false);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("TypeSig", FunctionParameter.BOOLEAN);
+	with( aFPArray[x] ) {
+        setName("SMA (Signal)");
+        setDefault(true);
+    }
+	x++;
+	aFPArray[x] = new FunctionParameter( "EMALen", FunctionParameter.NUMBER);
+	with( aFPArray[x] ) {
+        setName("EMA (Inertia)");
+		setLowerLimit(1);
+		setDefault(13);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("NeutColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Neutral Color");
+        setDefault(Color.cyan);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("UpColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Up Color");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("DnColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Down Color");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("BarThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Bar Thickness");
+        setDefault(2);
+	}
+	x++;
+	_init = true;
+}
+
+var _init = true;
+
+var vMACD;
+var vEMA
+var aFPArray = new Array();
+
+function main(FastLen, SlowLen, SmoothingLen, Source, TypeOsc, TypeSig, EMALen, NeutColor, UpColor, DnColor, BarThick) {
+
+    var x;
+
+	if (_init) {
+		vMACD = new MACDStudy(FastLen, SlowLen, SmoothingLen, Source, TypeOsc, TypeSig);
+		vEMA = new MAStudy(EMALen, 0, Source, MAStudy.EXPONENTIAL);
+
+        _init = false;
+	}
+
+	//script is initializing
+    if (getBarState() == BARSTATE_ALLBARS) {
+        return null;
+    }
+
+    var nowValMACD = vMACD.getValue(MACDStudy.HIST, 0);
+    var preValMACD = vMACD.getValue(MACDStudy.HIST, -1);
+    Diverge(nowValMACD, preValMACD);
+
+    var nowValEMA = vEMA.getValue(MAStudy.MA, 0);
+    var preValEMA = vEMA.getValue(MAStudy.MA, -1);
+
+    if(nowValMACD > preValMACD && nowValEMA > preValEMA)
+    {
+        setBarFgColor(UpColor);
+    }
+    else if(nowValMACD < preValMACD && nowValEMA < preValEMA)
+    {
+        setBarFgColor(DnColor);
+    }
+    else
+    {
+        setBarFgColor(NeutColor);
+    }
+
+    setBarThickness(BarThick);
+
+    return nowValMACD;
+}
+
+var upper = false;
+var u1, u2, l1, l2;
+var l1_bar = 0;
+var l2_bar = 0;
+var u1_bar = 0;
+var u2_bar = 0;
+function Diverge(nowVal, preVal) {
+    if (getBarState() == BARSTATE_NEWBAR) {
+        l1_bar--;
+        l2_bar--;
+        u1_bar--;
+        u2_bar--;
+
+        if(nowVal > 0 && preVal <= 0) { // cross up
+            upper = true;
+            u2 = u1;
+            u1 = nowVal;
+            u2_bar = u1_bar;
+            u1_bar = 0; // because will be decremented
+        }
+        else if(nowVal < 0 && preVal >= 0) { // cross down
+            upper = false;
+            l2 = l1;
+            l1 = nowVal;
+            l2_bar = l1_bar;
+            l1_bar = 0;
+        }
+    }
+    if(nowVal > u1 && upper) { // new high
+        u1 = nowVal;
+        u1_bar = 0;
+    }
+    else if(nowVal < l1 && !upper) { // new low
+        l1 = nowVal;
+        l1_bar = 0;
+    }
+
+    var upperColor = Color.blue;
+    var lowerColor = Color.blue;
+    if(u1 > u2 && high(u1_bar) <= high(u2_bar)) {
+        upperColor = Color.red;
+    } else if (u1 < u2 && high(u1_bar) >= high(u2_bar)) {
+        upperColor = Color.red;
+    }
+    if(l1 > l2 && low(l1_bar) <= low(l2_bar)) {
+        lowerColor = Color.lime;
+    } else if (l1 < l2 && low(l1_bar) >= low(l2_bar)) {
+        lowerColor = Color.lime;
+    }
+
+    drawLineRelative(l1_bar, l1, l2_bar, l2, PS_SOLID, 2, lowerColor, 1);
+    drawLineRelative(u1_bar, u1, u2_bar, u2, PS_SOLID, 2, upperColor, 2);
+}

@@ -1,0 +1,26 @@
+
+function preMain() {
+    setStudyTitle("DSS");
+    
+    setDefaultBarFgColor(Color.red, 0); 
+    setDefaultBarFgColor(Color.yellow, 1);
+
+    setDefaultBarThickness(2, 0); 
+    setDefaultBarThickness(2, 1); 
+    addBand(20, PS_SOLID, 1, Color.white); 
+    addBand(80, PS_SOLID, 1, Color.white); 
+    setShowTitleParameters(false);
+
+    setCursorLabelName("Slow", 0); 
+    setCursorLabelName("Fast", 1);
+}
+
+function main() 
+{
+
+    var vValue1 = call("SlowDSS.efs");
+    var vValue2 = call("FastDSS.efs");
+
+    return Array(vValue1, vValue2);
+}
+

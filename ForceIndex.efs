@@ -1,0 +1,107 @@
+
+function preMain() {
+
+    var aFPArray = new Array();
+    setShowTitleParameters(false);
+
+    setPriceStudy(false);
+    setStudyTitle("Force Index");
+    setCursorLabelName("Force Index", 0);
+    setDefaultBarFgColor( Color.blue, 0 );
+    
+    var x=0; 
+	aFPArray[x] = new FunctionParameter( "Smoothing", FunctionParameter.NUMBER);
+	with( aFPArray[x++] ) {
+        setName("Smoothing Length");
+		setLowerLimit(1);
+		setDefault(2);
+	}  
+	aFPArray[x] = new FunctionParameter( "SmoothType", FunctionParameter.STRING);
+	with( aFPArray[x++] ) {
+        setName("Smoothing Type");
+		addOption("EMA");
+		addOption("WMA");
+		addOption("SMA");
+		setDefault("EMA");
+	}  
+	aFPArray[x] = new FunctionParameter( "LineColorPos", FunctionParameter.COLOR);
+	with( aFPArray[x++] ) {
+        setName("Line Color Positive");
+		setDefault( Color.lime );
+	}  
+	aFPArray[x] = new FunctionParameter( "LineColorNeg", FunctionParameter.COLOR);
+	with( aFPArray[x++] ) {
+        setName("Line Color Negative");
+		setDefault( Color.red );
+	}  
+	aFPArray[x] = new FunctionParameter( "ZeroLineColor", FunctionParameter.COLOR);
+	with( aFPArray[x++] ) {
+        setName("Zero Line Color");
+		setDefault( Color.white);
+	}  
+	aFPArray[x] = new FunctionParameter( "LineThickness", FunctionParameter.NUMBER);
+	with( aFPArray[x++] ) {
+        setName("Line Thickness");
+		setLowerLimit(1);
+		setDefault(1);
+	}  
+	aFPArray[x] = new FunctionParameter( "PlotType", FunctionParameter.STRING);
+	with( aFPArray[x++] ) {
+        setName("Plot Type");
+		addOption("PLOTTYPE_LINE");
+		addOption("PLOTTYPE_HISTOGRAM");
+		setDefault("PLOTTYPE_LINE");
+	}  
+
+    _init = true;
+}
+
+var _init = true;
+var aData;
+
+function main( 
+Smoothing, 
+SmoothType,
+LineColorPos, 
+LineColorNeg, 
+ZeroLineColor, 
+LineThickness, 
+PlotType ) {
+
+    if ( getBarState() == BARSTATE_ALLBARS ) {
+        return null;
+    }
+
+	if (_init) {
+		setPlotType( eval( PlotType ) );
+		setDefaultBarThickness(LineThickness, 0 );
+		if ( PlotType == "PLOTTYPE_LINE" ) {
+    		addBand(0, PS_SOLID, 2, ZeroLineColor, -1);
+    	}
+
+        setStudyTitle("Force Index (" + SmoothType + "," + Smoothing + ")");
+
+        _init = false;
+    }
+
+	var result = 0;
+	if(SmoothType == "EMA") {
+        result = ema(Smoothing, efsInternal("customStudy"));
+	}
+	else if(SmoothType == "WMA") {
+        result = wma(Smoothing, efsInternal("customStudy"));
+	}
+	else {
+        result = sma(Smoothing, efsInternal("customStudy"));
+	}
+
+    setBarFgColor((result >= 0) ? LineColorPos : LineColorNeg);
+
+	return result;
+}
+
+function customStudy() {
+    return (close() - close(-1)) * volume();
+}
+
+

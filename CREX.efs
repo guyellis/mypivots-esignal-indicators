@@ -1,0 +1,170 @@
+
+var aFPArray = new Array();
+function preMain()
+{
+
+    setPriceStudy(false);
+
+    setPlotType(PLOTTYPE_HISTOGRAM,0);
+
+    /* Set the title that will appear in the study pane */
+    setStudyTitle("CREX");
+    setShowTitleParameters(false);
+
+    /* Set the label that will appear in the cursor window */
+    setCursorLabelName("CREX");
+
+    /* Force the scale to be 0->100 */
+    setStudyMin(0.0);
+    setStudyMax(100.0);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("popAlert", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] )
+    {
+        setName("Popup Alert");
+        setDefault(true);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("makeSound", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setName("Sound Alert");
+        setDefault(true);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("barThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Bar Thickness");
+        setDefault(3);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("multiplier", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Multiplier");
+        setDefault(10);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("offset", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Offset");
+        setDefault(0);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("buy1Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 1 Buy Color");
+        setDefault(Color.green);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("buy2Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 2 Buy Color");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("buy3Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 3 Buy Color");
+        setDefault(Color.white);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("sell1Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 1 Sell Color");
+        setDefault(Color.fushcia);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("sell2Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 2 Sell Color");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("sell3Color", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Level 3 Sell Color");
+        setDefault(Color.white);
+	}
+
+	_init = true;
+}
+
+var vCREX = 0;
+var alertSound = "laser.wav";
+
+var _init = true;
+var outsideHours = true;
+
+function main(popAlert, makeSound, barThick, multiplier, offset, buy1Color, buy2Color, buy3Color, sell1Color, sell2Color, sell3Color)
+{
+
+    if (getInterval() == "D")
+    {
+        return;
+    }
+
+    if(_init) {
+        setDefaultBarThickness(barThick,0);
+        _init = false;
+    }
+
+	if(getBarState() == BARSTATE_NEWBAR)
+    {
+        var startHour = 9 + offset;
+        var endHour = 16 + offset;
+        var hour = getHour(0);
+        var minute = getMinute(0);
+        if( (hour < startHour) || (hour==startHour && minute < 45) || (hour >= endHour) )
+        {
+            outsideHours = true;
+        }
+        else
+        {
+            outsideHours = false;
+        }
+        if(!outsideHours)
+        {
+            if(vCREX <= 30 && popAlert)
+                Alert.addToList(getSymbol(), "CREX Buy Signal", Color.black, Color.lime);
+
+            if(vCREX <= 30 && makeSound)
+                Alert.playSound(alertSound);
+
+            if(vCREX >= 70 && popAlert)
+                Alert.addToList(getSymbol(), "CREX Sell Signal", Color.black, Color.red);
+
+            if(vCREX >= 70 && makeSound)
+                Alert.playSound(alertSound);
+        }
+    }
+
+    vCREX = callFunction("DeltaT1.efs", "FREX", 14, multiplier);
+
+    if(vCREX == null)
+    {
+        debugPrintln("return value from getTSig() is null");
+        return;
+    }
+
+    if(!outsideHours)
+    {
+        if(vCREX >= 70) {
+            setBarFgColor(sell3Color);
+        } else if(vCREX <= 30) {
+            setBarFgColor(buy3Color);
+        } else if(vCREX >= 65) {
+            setBarFgColor(sell2Color);
+        } else if(vCREX <= 35) {
+            setBarFgColor(buy2Color);
+        } else if(vCREX >= 60) {
+            setBarFgColor(sell1Color);
+        } else if(vCREX <= 40) {
+            setBarFgColor(buy1Color);
+        }
+    }
+
+    if(outsideHours)
+        return 50;
+
+    return vCREX;
+}

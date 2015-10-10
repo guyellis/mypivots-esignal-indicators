@@ -1,0 +1,179 @@
+
+function preMain() {
+
+    setStudyTitle("VolAvg");
+    setShowTitleParameters(false);
+    setCursorLabelName("Volume", 0);
+    setCursorLabelName("Avg Vol", 1);
+    setDefaultBarFgColor(Color.green, 0);
+    setDefaultBarFgColor(Color.teal, 1);
+    setPlotType(PLOTTYPE_HISTOGRAM, 0);
+
+    var x=0;
+    aFPArray[x] = new FunctionParameter("startHour", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Start Hour");
+        setDefault(9);
+        setLowerLimit(0);
+        setUpperLimit(23);
+
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("startMinute", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Start Minute");
+        setDefault(30);
+        setLowerLimit(0);
+        setUpperLimit(59);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("XVol", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Xtreme Vol");
+        setDefault(5000);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("HistThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Bar Thickness");
+        setDefault(3);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("LineThick", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Line Thickness");
+        setDefault(2);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("XVolColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Extreme Vol Color");
+        setDefault(Color.fushcia);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("UpVolColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Up Vol Color");
+        setDefault(Color.lime);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("DnVolColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Down Vol Color");
+        setDefault(Color.red);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("EqVolColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Equal Vol Color");
+        setDefault(Color.teal);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("AvgColor", FunctionParameter.COLOR);
+    with( aFPArray[x] ) {
+        setName("Average Line Color");
+        setDefault(Color.teal);
+	}
+	x++;
+	aFPArray[x] = new FunctionParameter("makeSound", FunctionParameter.BOOLEAN);
+    with( aFPArray[x] ) {
+        setName("Sound Alerts");
+        setDefault(true);
+	}
+	x++;
+    aFPArray[x] = new FunctionParameter("NumBars", FunctionParameter.NUMBER);
+    with( aFPArray[x] ) {
+        setName("Num Bars to watch");
+        setDefault(20);
+	}
+	x++;
+
+	_init = true;
+}
+
+var sTime = 9 * 60 + 29;
+var endTime = new Date();
+var _init = true;
+var aFPArray = new Array();
+var totalMinutes = 0;
+var soundVolXtreme;
+var soundVolAvg;
+var activeAvg = true;
+var activeXtreme = true;
+
+function main(startHour, startMinute, HistThick, LineThick, XVol, XVolColor,
+ DnVolColor, UpVolColor, EqVolColor, AvgColor, makeSound, NumBars) {
+
+    var vColor = Color.yellow;
+
+    if(_init)
+    {
+        addBand(XVol, PS_SOLID, 2, XVolColor, 0);
+        _init = false;
+        sTime = startHour * 60 + startMinute - 1;
+        setDefaultBarThickness(HistThick, 0);
+        setDefaultBarThickness(LineThick, 1);
+        setDefaultBarFgColor(AvgColor, 1);
+
+        soundVolXtreme = "VolXtreme.wav";
+        soundVolAvg = "VolAvg.wav";
+    }
+
+    if (getBarState() == BARSTATE_NEWBAR) {
+        totalMinutes = getHour() * 60 + getMinute();
+        activeAvg = true;
+        activeXtreme = true;
+    }
+
+    nVol = volume();
+    var nVolAvg = getAvg(NumBars);
+
+    if(nVol > XVol) {
+        if(activeXtreme) {
+            if(makeSound || makeSound == "true")
+            {
+                Alert.playSound(soundVolXtreme);
+            }
+            activeXtreme = false;
+        }
+    }
+    if(nVol > nVolAvg) {
+        if(activeAvg) {
+            if(makeSound || makeSound == "true")
+            {
+                Alert.playSound(soundVolAvg);
+            }
+            activeAvg = false;
+        }
+    }
+
+    if (nVol > XVol)
+        vColor = XVolColor;
+    else if(close() > close(-1))
+        vColor = UpVolColor;
+    else if(close() == close(-1))
+        vColor = EqVolColor;
+    else
+        vColor = DnVolColor;
+
+    setBarFgColor(vColor);
+
+    return new Array(nVol, nVolAvg);
+}
+
+function getAvg(NumBars) {
+    var xBars = 0;
+    var minDiff = (totalMinutes - sTime) / getInterval();
+    minDiff = Math.min(NumBars, minDiff);
+    if(minDiff < 1)
+        return volume();
+
+    var sumX = 0;
+
+    for(i=0; i>-minDiff; i--)
+    {
+        sumX += volume(i);
+        xBars++;
+    }
+    return sumX / xBars;
+}

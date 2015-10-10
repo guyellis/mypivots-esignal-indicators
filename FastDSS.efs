@@ -1,0 +1,15 @@
+
+function preMain() {
+	
+    setStudyTitle("FastDSS");
+    setShowCursorLabel(false);
+    setShowTitleParameters(false);
+}
+
+function main() 
+{
+	
+    return call("DSS2.efs",  11, 6);
+}
+
+
